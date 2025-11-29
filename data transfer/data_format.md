@@ -75,7 +75,7 @@ Maps to `person` table.
 | popularity         | FLOAT   | TMDB popularity metric          |
 | birth_country_iso  | STRING  | ISO 3166-1 country code         |
 | gender             | ARRAY   | TMDB gender code (0-3)          |
-| crew_jobs          | ARRAY   | Includes crew jobs' name and id | 
+| crew_jobs          | ARRAY   | Includes crew jobs' name and id |
 | cast_jobs          | ARRAY   | Includes cast jobs' name and id |
 
 **Notes:**
