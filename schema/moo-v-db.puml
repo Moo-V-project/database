@@ -1,0 +1,193 @@
+@startuml moo-v-db
+
+!theme plain
+hide empty methods
+
+left to right direction
+
+
+!procedure $schema($name, $slug)
+package "$name" as $slug <<Rectangle>>
+!endprocedure
+
+!procedure $table($name, $slug)
+entity "<b>$name</b>" as $slug << (T, Orange) table >>
+!endprocedure
+
+!procedure $view($name, $slug)
+entity "<b>$name</b>" as $slug << (V, Aquamarine) view >>
+!endprocedure
+
+!procedure $pk($name)
+<color:#GoldenRod><&key></color> <b>$name</b>
+!endprocedure
+
+!procedure $fk($name)
+<color:#Silver><&key></color> $name
+!endprocedure
+
+!procedure $column($name)
+{field} <color:#White><&media-record></color> $name
+!endprocedure
+
+
+
+$schema("Moo-V Database Schema", moo_v_db) {
+
+
+' Defines a collection of movies
+$table(collection, collection) {
+	$pk(id): SERIAL
+	--
+	$column(name): VARCHAR UNIQUE NOT NULL
+}
+
+
+' Defines a movie
+$table(movie, movie) {
+	$pk(id): SERIAL
+	--
+	$column(title): VARCHAR NOT NULL			/' Movie title in English'/
+	$column(adult): BOOLEAN DEFAULT FALSE		/' Is the movie adult-rated? '/
+	$column(overview): VARCHAR 					/' Short movie description'/
+	$column(overview_vector): VECTOR 			/' Vectorized movie overview'/
+	$column(tagline): VARCHAR 					/' Movie tagline'/
+	$column(budget): BIGINT CHECK(budget > 0)	/' Movie budget in USD'/
+	$column(revenue): BIGINT CHECK(revenue > 0) /' Total movie revenue in USD'/
+	$column(runtime): INT CHECK(runtime > 0)	/' Duration of the movie in minutes '/
+	$column(release_date): DATE 				/' Movie release date '/
+	$column(homepage): VARCHAR					/' URL of movie homepage '/
+	$column(poster_url): VARCHAR				/' URL of the movie poster image '/
+	/' Number of user votes '/
+	$column(vote_count): INT CHECK(vote_count >= 0)
+	/' Average user vote '/
+	$column(avg_vote): FLOAT CHECK(avr_vote >= 0)
+	/' Popularity score. FIXME: is it really usable since it changes over time? '/
+	$column(popularity): FLOAT CHECK(popularity >= 0)
+	/' Vector representation of the summary of the user reviews
+		Gemini has a free API and supports batch requests '/
+	$column(reviews_sum): VECTOR
+	$column(tmdb_id): INT UNIQUE NOT NULL	/' The Movie Database (TMDb) identifier '/
+	--
+	/' Foreign key to collection the movie belongs to, if any'/
+	$fk(collection_id)
+}
+movie::collection_id }|--|| collection::id
+
+' Defines user movie lists
+' Don't actually think it worths it to store this much of data
+' $table(list, list) {}
+
+'Defines genres to be assigned to movies
+$table(genre, genre) {
+	$pk(id): SERIAL
+	--
+	$column(name): VARCHAR UNIQUE NOT NULL
+}
+
+' Junction table between movies and genres
+$table(movie_genre, movie_genre) {
+	$fk(movie_id)
+	$fk(genre_id)
+}
+movie::id ||--|{ movie_genre::movie_id
+genre::id ||--|{ movie_genre::genre_id
+
+' Defines keywords to be assigned to movies
+$table(keyword, keyword) {
+	$pk(id): SERIAL
+	--
+	$column(name): VARCHAR UNIQUE NOT NULL
+}
+
+' Junction table between movies and keywords
+$table(movie_keyword, movie_keyword) {
+	$fk(movie_id)
+	$fk(keyword_id)
+}
+movie::id ||--|{ movie_keyword::movie_id
+keyword::id ||--|{ movie_keyword::keyword_id
+
+
+' Defines a country
+$table(country, country) {
+	$pk(id): SERIAL
+	--
+	$column(name): VARCHAR UNIQUE NOT NULL
+	$column(iso_3166_1): CHAR(2) UNIQUE NOT NULL
+}
+
+
+' Defines a gender
+$table(gender, gender) {
+	$pk(id): SERIAL
+	--
+	$column(name): VARCHAR UNIQUE NOT NULL
+}
+
+
+' Defines a person working on movies production (actor, director, writer, etc)
+' Specify the name to show that it's a cast or crew member and not just a human
+$table(person, person) {
+	$pk(id): SERIAL
+	--
+	$column(name): VARCHAR NOT NULL 	/' Full name of the person '/
+	$column(birth_date): DATE			/' Date of birth '/
+	$column(profile_image_url): VARCHAR	/' URL of the profile image '/
+	/' Popularity score '/
+	$column(popularity): FLOAT CHECK(popularity >= 0)
+	--
+	$fk(birth_country_id): INT			/' Foreign key to country of birth '/
+	$fk(gender_id): INT					/' Foreign key to gender '/
+}
+person::birth_country_id }|--|| country::id
+person::gender_id }|--|| gender::id
+
+
+' Defines a specific job within a department
+$table(job, job) {
+	$pk(id): SERIAL
+	--
+	$column(name): VARCHAR UNIQUE NOT NULL
+	$column(department): VARCHAR NOT NULL
+}
+
+' Defines a cast credit in a movie
+$table(cast_credit, cast_credit) {
+	$pk(id): SERIAL
+	--
+	$column(character_name): VARCHAR	/' Name of the character played '/
+	--
+	$fk(movie_id): INT
+	$fk(person_id): INT
+	$fk(job_id): INT
+}
+cast_credit::movie_id }|--|| movie::id
+cast_credit::person_id }|--|| person::id
+cast_credit::job_id }|--|| job::id
+
+' Defines a cast credit in a movie
+$table(crew_credit, crew_credit) {
+	$pk(id): SERIAL
+	--
+	$fk(movie_id): INT
+	$fk(person_id): INT
+	$fk(job_id): INT
+}
+crew_credit::movie_id }|--|| movie::id
+crew_credit::person_id }|--|| person::id
+crew_credit::job_id }|--|| job::id
+
+
+' Defines a production company
+$table(company, company) {
+	$pk(id): SERIAL
+	--
+	$column(name): VARCHAR UNIQUE NOT NULL
+	--
+	fk(country_id): INT				/' Foreign key to country of origin '/
+}
+
+company::country_id }|--|| country::id
+
+@enduml
