@@ -61,7 +61,7 @@ $table(movie, movie) {
 	/' Number of user votes '/
 	$column(vote_count): INT CHECK(vote_count >= 0)
 	/' Average user vote '/
-	$column(avg_vote): FLOAT CHECK(avr_vote >= 0)
+	$column(avg_vote): FLOAT CHECK(avg_vote >= 0)
 	/' Popularity score. FIXME: is it really usable since it changes over time? '/
 	$column(popularity): FLOAT CHECK(popularity >= 0)
 	/' Vector representation of the summary of the user reviews
