@@ -34,34 +34,34 @@ Primary entities forming the database foundation:
 
 Maps to `movie` table.
 
-| Column          | Type    | Description                                      |
-|-----------------|---------|--------------------------------------------------|
-| tmdb_id         | INTEGER | TMDB movie ID (unique)                           |
-| title           | STRING  | Film title                                       |
-| adult           | BOOLEAN | Adult content flag                               |
-| overview        | STRING  | Plot summary (converted to VECTOR by importer)   |
-| tagline         | STRING  | Marketing tagline                                |
-| budget          | INTEGER | Production budget (USD)                          |
-| revenue         | INTEGER | Box office revenue (USD)                         |
-| runtime         | INTEGER | Duration in minutes                              |
-| release_date    | DATE    | Theatrical release date                          |
-| homepage        | STRING  | Official website URL                             |
-| poster_url      | STRING  | Full poster image URL                            |
-| vote_count      | INTEGER | Number of user ratings                           |
-| avg_vote        | FLOAT   | Average rating score                             |
-| popularity      | FLOAT   | TMDB popularity metric                           |
-| reviews_sum     | STRING  | Aggregated reviews (converted to VECTOR)         |
-| collection_id   | INTEGER | FK to collection table                           |
-| keywords        | ARRAY   | Includes keyword id(int) and keyword(str)        |
-| genre_id        | INTEGER | FK to genres table                               |
-| collection      | ARRAY   | collection_id(int) and name(str)                 |
-| crew_jobs       | JSON    | Person id(int), job(str)                         |
-| cast_jobs       | JSON    | Person id(int), job(str), character_name(str)    |
+| Column          | Type    | Description                                                                 |
+|-----------------|---------|-----------------------------------------------------------------------------|
+| tmdb_id         | INTEGER | TMDB movie ID (unique)                                                      |
+| title           | STRING  | Film title                                                                  |
+| adult           | BOOLEAN | Adult content flag                                                          |
+| overview        | STRING  | Plot summary                                                                |
+| tagline         | STRING  | Marketing tagline                                                           |
+| budget          | INTEGER | Production budget (USD)                                                     |
+| revenue         | INTEGER | Box office revenue (USD)                                                    |
+| runtime         | INTEGER | Duration in minutes                                                         |
+| release_date    | DATE    | Theatrical release date                                                     |
+| homepage        | STRING  | Official website URL                                                        |
+| poster_url      | STRING  | Full poster image URL                                                       |
+| vote_count      | INTEGER | Number of user ratings                                                      |
+| avg_vote        | FLOAT   | Average rating score                                                        |
+| popularity      | FLOAT   | TMDB popularity metric                                                      |
+| reviews_sum     | STRING  | Aggregated reviews                                                          |
+| collection      | STRING  | Collection name                                                             |
+| keywords        | ARRAY   | Array of keywords(str)                                                      |
+| companies       | ARRAY   | Array of company ids                                                        |
+| genres          | ARRAY   | Array if ids from genres csv                                                |
+| crew_jobs       | ARRAY   | Array of crew member objects: { id: int, job: str }                         |
+| cast_jobs       | ARRAY   | Array of cast member objects: { id: int, job: str, character_name: str }    |
 
 
 
 **Notes:**
-- Genres, keywords, cast, and crew stored in separate linking tables
+- Genres, keywords, cast, and crew stored in separate csv files
 - `poster_url` = TMDB base_url + poster_path
 - `overview` and `reviews_sum` are raw text; importer handles vector embedding
 
@@ -78,15 +78,13 @@ Maps to `person` table.
 | birth_date         | DATE    | Date of birth                   |
 | profile_image_url  | STRING  | Full profile photo URL          |
 | popularity         | FLOAT   | TMDB popularity metric          |
-| birth_country_iso  | STRING  | ISO 3166-1 country code         |
-| gender             | ARRAY   | TMDB gender code (0-3)          |
-| crew_jobs          | ARRAY   | Includes crew jobs' name and id |
-| cast_jobs          | ARRAY   | Includes cast jobs' name and id |
+| birth_country_id   | INTEGER | FK to countries csv             |
+| gender             | INTEGER | TMDB gender code (0-3)          |
+
+---
 
 **Notes:**
 - `gender_code` would be mapped to `gender_id` by importer (0=Not specified, 1=Female, 2=Male, 3=Non-binary)
-- `birth_country_iso` parsed from TMDB `place_of_birth` field
-- Importer resolves ISO code to `country_id` FK
 
 ---
 
@@ -98,7 +96,7 @@ Maps to `company` table.
 |-------------|---------|-------------------------------|
 | tmdb_id     | INTEGER | TMDB company ID (unique)      |
 | name        | STRING  | Company name                  |
-| country_iso | STRING  | ISO 3166-1 origin country     |
+| country_id  | INTEGER | FK to countries csv           |
 
 **Notes:**
 - Importer resolves `country_iso` to `country_id` FK
@@ -110,7 +108,8 @@ Maps to `country` table.
 
 | Column     | Type    | Description            |
 |------------|---------|------------------------|
-| iso_3166_1 | STRING  | ISO country code (PK)  |
+| tmdb_id    | INTEGER | TMDB country id        |
+| iso_3166_1 | STRING  | ISO country code       |
 | name       | STRING  | Full country name      |
 
 **Notes:**
