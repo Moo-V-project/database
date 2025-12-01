@@ -52,8 +52,13 @@ Maps to `movie` table.
 | popularity      | FLOAT   | TMDB popularity metric                           |
 | reviews_sum     | STRING  | Aggregated reviews (converted to VECTOR)         |
 | collection_id   | INTEGER | FK to collection table                           |
-| keywords        | ARRAY   | Includes keyword id and keyword itself           |
-| collections     | ARRAY   | Includes collection_id and name                  |
+| keywords        | ARRAY   | Includes keyword id(int) and keyword(str)        |
+| genre_id        | INTEGER | FK to genres table                               |
+| collection      | ARRAY   | collection_id(int) and name(str)                 |
+| crew_jobs       | JSON    | Person id(int), job(str)                         |
+| cast_jobs       | JSON    | Person id(int), job(str), character_name(str)    |
+
+
 
 **Notes:**
 - Genres, keywords, cast, and crew stored in separate linking tables
