@@ -59,9 +59,7 @@ Maps to `movie` table.
 | cast_jobs       | ARRAY   | Array of cast member objects: { id: int, job: str, character_name: str }    |
 
 
-
 **Notes:**
-- Genres, keywords, cast, and crew stored in separate csv files
 - `poster_url` = TMDB base_url + poster_path
 - `overview` and `reviews_sum` are raw text; importer handles vector embedding
 
@@ -98,9 +96,6 @@ Maps to `company` table.
 | name        | STRING  | Company name                  |
 | country_id  | INTEGER | FK to countries csv           |
 
-**Notes:**
-- Importer resolves `country_iso` to `country_id` FK
-
 ---
 ## countries.csv
 
@@ -129,5 +124,4 @@ Maps to `genre` table.
 
 **Notes:**
 - Fixed TMDB genre list (~20 entries)
-- Examples: Action, Drama, Science Fiction
 
