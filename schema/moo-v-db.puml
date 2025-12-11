@@ -30,6 +30,9 @@ entity "<b>$name</b>" as $slug << (V, Aquamarine) view >>
 {field} <color:#White><&media-record></color> $name
 !endprocedure
 
+!procedure $constraint($name)
+{field} <color:#Silver><U+26D3></color> $name
+!endprocedure
 
 
 $schema("Moo-V Database Schema", moo_v_db) {
@@ -89,6 +92,8 @@ $table(genre, genre) {
 $table(movie_genre, movie_genre) {
 	$fk(movie_id)
 	$fk(genre_id)
+	--
+	$constraint("UNIQUE(movie_id, genre_id)")	/' Unique constraint to avoid duplicates '/
 }
 movie::id ||--|{ movie_genre::movie_id
 genre::id ||--|{ movie_genre::genre_id
@@ -104,6 +109,8 @@ $table(keyword, keyword) {
 $table(movie_keyword, movie_keyword) {
 	$fk(movie_id)
 	$fk(keyword_id)
+	--
+	$constraint("UNIQUE(movie_id, keyword_id)")	/' Unique constraint to avoid duplicates '/
 }
 movie::id ||--|{ movie_keyword::movie_id
 keyword::id ||--|{ movie_keyword::keyword_id
@@ -138,18 +145,19 @@ $table(person, person) {
 	$column(popularity): FLOAT CHECK(popularity >= 0)
 	--
 	$fk(birth_country_id): INT			/' Foreign key to country of birth '/
-	$fk(gender_id): INT					/' Foreign key to gender '/
+	$fk(gender_id): INT NOT NULL		/' Foreign key to gender '/
+	--
+	$constraint("UNIQUE(name, birth_date)")	/' Unique constraint to avoid duplicates '/
 }
 person::birth_country_id }|--|| country::id
 person::gender_id }|--|| gender::id
 
 
-' Defines a specific job within a department
+' Defines a specific job
 $table(job, job) {
 	$pk(id): SERIAL
 	--
 	$column(name): VARCHAR UNIQUE NOT NULL
-	$column(department): VARCHAR NOT NULL
 }
 
 ' Defines a cast credit in a movie
@@ -161,6 +169,8 @@ $table(cast_credit, cast_credit) {
 	$fk(movie_id): INT
 	$fk(person_id): INT
 	$fk(job_id): INT
+	--
+	$constraint("UNIQUE(movie_id, person_id, job_id, character_name)")	/' Unique constraint to avoid duplicates '/
 }
 cast_credit::movie_id }|--|| movie::id
 cast_credit::person_id }|--|| person::id
@@ -173,6 +183,8 @@ $table(crew_credit, crew_credit) {
 	$fk(movie_id): INT
 	$fk(person_id): INT
 	$fk(job_id): INT
+	--
+	$constraint("UNIQUE(movie_id, person_id, job_id)")	/' Unique constraint to avoid duplicates '/
 }
 crew_credit::movie_id }|--|| movie::id
 crew_credit::person_id }|--|| person::id
@@ -185,7 +197,7 @@ $table(company, company) {
 	--
 	$column(name): VARCHAR UNIQUE NOT NULL
 	--
-	fk(country_id): INT				/' Foreign key to country of origin '/
+	$fk(country_id): INT				/' Foreign key to country of origin '/
 }
 
 company::country_id }|--|| country::id
