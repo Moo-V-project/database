@@ -1,0 +1,4 @@
+tmdb_id,name,birth_date,profile_image_url,popularity,birth_country_id,gender
+300,Alex Johnson,1985-04-12,https://img.example.com/alex.jpg,7.25,100,2
+301,Emily Carter,1990-09-30,https://img.example.com/emily.jpg,6.10,101,1
+302,Jean Dupont,1978-01-05,https://img.example.com/jean.jpg,5.80,102,2
