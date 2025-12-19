@@ -1,0 +1,2 @@
+tmdb_id,title,adult,overview,tagline,budget,revenue,runtime,release_date,homepage,poster_url,vote_count,avg_vote,popularity,reviews_sum,collection,keywords,companies,genres,crew_jobs,cast_jobs
+403,Behind the Camera,False,"A filmmaker's struggle.","Truth behind the lens.",15000000,45000000,98,2019-02-20,https://camera.example.com,https://img.example.com/camera.jpg,320,6.5,8.9,2700,"","[""film""]","[201]","[3]","[{""job"":""Director""}]","[{""id"":300,""job"":""Actor"",""character_name"":""Self""}]"
