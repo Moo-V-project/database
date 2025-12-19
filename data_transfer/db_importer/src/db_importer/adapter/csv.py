@@ -1,10 +1,10 @@
-from os import path
+from os import path, PathLike
 from typing import Any
 
 from json import loads
 from jsonschema import validate
 
-from pandas import DataFrame, read_csv
+from pandas import DataFrame, read_csv, to_datetime
 from pandas._typing import Dtype
 import numpy as np
 
@@ -133,9 +133,8 @@ REQUIRED_FIELDS: dict[str, CSVSchema] = {
 }
 
 
-# TODO: implement a function for import all the csvs to data frames, checking presence of all the column and their data types
 def read_all_movie_csvs(
-    base_path: str,
+    base_path: str | PathLike,
 ) -> tuple[DataFrame, DataFrame, DataFrame, DataFrame, DataFrame]:
     """
     Reads all required movie CSV files from the specified base path and returns them as DataFrames.
@@ -149,7 +148,7 @@ def read_all_movie_csvs(
     Raises:
         FileNotFoundError: If any of the required CSV files are not found in the specified base path.
         ValueError: If any of the CSV files do not conform to the expected schema
-        TypeError: If there is a type mismatch in any of the CSV files.
+        jsonschema.ValidationError: If any JSON data in the CSV files fails schema validation.
     """
     # TODO: check all the exceptions the function can raise and document them properly
     result: list[DataFrame] = []
@@ -158,14 +157,16 @@ def read_all_movie_csvs(
         df = read_csv(
             filepath_or_buffer=filepath,
             usecols=schema.get_all_columns(),
-            dtype=schema.get_dtype_mapping(),
-            parse_dates=schema.get_date_columns(),
+            dtype=schema.get_dtype_mapping(),  # type: ignore
         )
+
+        for date_col in schema.get_date_columns():
+            df[date_col] = to_datetime(df[date_col], format="ISO8601")
 
         for json_col, json_schema in schema.get_json_schemas().items():
             # TODO: add proper error handling
             df[json_col] = df[json_col].apply(loads)
-            tmp = df[json_col].apply(
+            df[json_col].apply(
                 lambda data: validate(instance=data, schema=json_schema)
             )
 
