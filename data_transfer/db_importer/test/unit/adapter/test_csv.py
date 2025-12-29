@@ -16,5 +16,5 @@ def test_read_csvs_missing_file(csv_dir_missing_file):
 
 
 def test_read_csvs_invalid(csv_dir_invalid):
-    with pytest.raises((ValueError, ValidationError)) as e_info:
+    with pytest.raises((ValueError, ValidationError)):
         read_all_movie_csvs(csv_dir_invalid)
