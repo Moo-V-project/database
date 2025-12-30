@@ -82,7 +82,7 @@ Maps to `person` table.
 ---
 
 **Notes:**
-- `gender_code` would be mapped to `gender_id` by importer (0=Not specified, 1=Female, 2=Male, 3=Non-binary)
+- `gender_code` would be mapped to the `GENDER` database enum by importer (0=Not specified(NULL), 1=female, 2=male, 3=non-binary)
 
 ---
 

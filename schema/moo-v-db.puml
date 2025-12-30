@@ -126,10 +126,10 @@ $table(country, country) {
 
 
 ' Defines a gender
-$table(gender, gender) {
-	$pk(id): SERIAL
-	--
-	$column(name): VARCHAR UNIQUE NOT NULL
+enum GENDER {
+	female
+	male
+	non-binary
 }
 
 
@@ -143,14 +143,15 @@ $table(person, person) {
 	$column(profile_image_url): VARCHAR	/' URL of the profile image '/
 	/' Popularity score '/
 	$column(popularity): FLOAT CHECK(popularity >= 0)
+	/' Persons's gender or NULL if not specified on TMDB '/
+	$column(gender): GENDER
 	--
 	$fk(birth_country_id): INT			/' Foreign key to country of birth '/
-	$fk(gender_id): INT NOT NULL		/' Foreign key to gender '/
 	--
 	$constraint("UNIQUE(name, birth_date)")	/' Unique constraint to avoid duplicates '/
 }
 person::birth_country_id }|--|| country::id
-person::gender_id }|--|| gender::id
+person::gender_id ..> GENDER
 
 
 ' Defines a specific job
