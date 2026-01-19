@@ -34,34 +34,34 @@ Primary entities forming the database foundation:
 
 Maps to `movie` table.
 
-| Column          | Type    | Description                                                                 |
-|-----------------|---------|-----------------------------------------------------------------------------|
-| tmdb_id         | INTEGER | TMDB movie ID (unique)                                                      |
-| title           | STRING  | Film title                                                                  |
-| adult           | BOOLEAN | Adult content flag                                                          |
-| overview        | STRING  | Plot summary                                                                |
-| tagline         | STRING  | Marketing tagline                                                           |
-| budget          | INTEGER | Production budget (USD)                                                     |
-| revenue         | INTEGER | Box office revenue (USD)                                                    |
-| runtime         | INTEGER | Duration in minutes                                                         |
-| release_date    | DATE    | Theatrical release date                                                     |
-| homepage        | STRING  | Official website URL                                                        |
-| poster_url      | STRING  | Full poster image URL                                                       |
-| vote_count      | INTEGER | Number of user ratings                                                      |
-| avg_vote        | FLOAT   | Average rating score                                                        |
-| popularity      | FLOAT   | TMDB popularity metric                                                      |
-| reviews_sum     | STRING  | Aggregated reviews                                                          |
-| collection      | STRING  | Collection name                                                             |
-| keywords        | ARRAY   | Array of keywords(str)                                                      |
-| companies       | ARRAY   | Array of company ids                                                        |
-| genres          | ARRAY   | Array if ids from genres csv                                                |
-| crew_jobs       | ARRAY   | Array of crew member objects: { id: int, job: str }                         |
-| cast_jobs       | ARRAY   | Array of cast member objects: { id: int, job: str, character_name: str }    |
+| Column                 | Type    | Description                                                                 |
+|------------------------|---------|-----------------------------------------------------------------------------|
+| tmdb_id                | INTEGER | TMDB movie ID (unique)                                                      |
+| title                  | STRING  | Film title                                                                  |
+| adult                  | BOOLEAN | Adult content flag                                                          |
+| overview               | STRING  | Plot summary                                                                |
+| tagline                | STRING  | Marketing tagline                                                           |
+| budget                 | INTEGER | Production budget (USD)                                                     |
+| revenue                | INTEGER | Box office revenue (USD)                                                    |
+| runtime                | INTEGER | Duration in minutes                                                         |
+| release_date           | DATE    | Theatrical release date                                                     |
+| homepage               | STRING  | Official website URL                                                        |
+| poster_url             | STRING  | Full poster image URL                                                       |
+| vote_count             | INTEGER | Number of user ratings                                                      |
+| avg_vote               | FLOAT   | Average rating score                                                        |
+| popularity             | FLOAT   | TMDB popularity metric                                                      |
+| reviews_sum_vector     | STRING  | Aggregated reviews                                                          |
+| collection             | STRING  | Collection name                                                             |
+| keywords               | ARRAY   | Array of keywords(str)                                                      |
+| companies              | ARRAY   | Array of company ids                                                        |
+| genres                 | ARRAY   | Array if ids from genres csv                                                |
+| crew_jobs              | ARRAY   | Array of crew member objects: { id: int, job: str }                         |
+| cast_jobs              | ARRAY   | Array of cast member objects: { id: int, character_name: str }              |
 
 
 **Notes:**
 - `poster_url` = TMDB base_url + poster_path
-- `overview` and `reviews_sum` are raw text; importer handles vector embedding
+- `overview` and `reviews_sum_vector` are raw text; importer handles vector embedding
 
 ---
 
