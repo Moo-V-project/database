@@ -14,6 +14,7 @@ Primary entities forming the database foundation:
 - **companies.csv** — production companies
 - **countries.csv** — geographic reference data
 - **genres.csv** — film genre categories
+- **jobs.csv** — jobs list 
 
 ---
 
@@ -56,7 +57,7 @@ Maps to `movie` table.
 | companies              | ARRAY   | Array of company ids                                                        |
 | genres                 | ARRAY   | Array if ids from genres csv                                                |
 | crew_jobs              | ARRAY   | Array of crew member objects: { id: int, job: str }                         |
-| cast_jobs              | ARRAY   | Array of cast member objects: { id: int, character_name: str }              |
+| cast_jobs              | ARRAY   | Array of cast member objects: { id: int, character_name: str, job: str }    |
 
 
 **Notes:**
@@ -124,4 +125,18 @@ Maps to `genre` table.
 
 **Notes:**
 - Fixed TMDB genre list (~20 entries)
+
+---
+
+## jobs.csv
+
+Maps to `job` table.
+
+| Column  | Type    | Description      |
+|---------|---------|------------------|
+| Id      | INTEGER | Job id           |
+| name    | STRING  | Job name         |
+
+**Notes:**
+- Fixed jobs list (includes cast and crew)
 
