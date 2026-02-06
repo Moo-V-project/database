@@ -51,7 +51,7 @@ Maps to `movie` table.
 | vote_count             | INTEGER | Number of user ratings                                                      |
 | avg_vote               | FLOAT   | Average rating score                                                        |
 | popularity             | FLOAT   | TMDB popularity metric                                                      |
-| reviews_sum_vector     | STRING  | Aggregated reviews                                                          |
+| reviews_sum            | STRING  | Aggregated reviews                                                          |
 | collection             | STRING  | Collection name                                                             |
 | keywords               | ARRAY   | Array of keywords(str)                                                      |
 | companies              | ARRAY   | Array of company ids                                                        |
@@ -62,7 +62,7 @@ Maps to `movie` table.
 
 **Notes:**
 - `poster_url` = TMDB base_url + poster_path
-- `overview` and `reviews_sum_vector` are raw text; importer handles vector embedding
+- `overview` and `reviews_sum` are raw text; importer handles vector embedding
 
 ---
 
