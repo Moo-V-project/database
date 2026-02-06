@@ -77,7 +77,7 @@ Maps to `person` table.
 | birth_date         | DATE    | Date of birth                   |
 | profile_image_url  | STRING  | Full profile photo URL          |
 | popularity         | FLOAT   | TMDB popularity metric          |
-| birth_country_id   | INTEGER | FK to countries csv             |
+| birth_country_iso  | STRING  | FK to countries csv             |
 | gender             | INTEGER | TMDB gender code (0-3)          |
 
 ---
@@ -95,7 +95,7 @@ Maps to `company` table.
 |-------------|---------|-------------------------------|
 | tmdb_id     | INTEGER | TMDB company ID (unique)      |
 | name        | STRING  | Company name                  |
-| country_id  | INTEGER | FK to countries csv           |
+| country_iso | STRING  | FK to countries csv           |
 
 ---
 ## countries.csv
@@ -104,7 +104,6 @@ Maps to `country` table.
 
 | Column     | Type    | Description            |
 |------------|---------|------------------------|
-| tmdb_id    | INTEGER | TMDB country id        |
 | iso_3166_1 | STRING  | ISO country code       |
 | name       | STRING  | Full country name      |
 
