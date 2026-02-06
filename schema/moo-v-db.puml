@@ -69,7 +69,7 @@ $table(movie, movie) {
 	$column(popularity): FLOAT CHECK(popularity >= 0)
 	/' Vector representation of the summary of the user reviews
 		Gemini has a free API and supports batch requests '/
-	$column(reviews_sum): VECTOR
+	$column(reviews_sum_vector): VECTOR
 	$column(tmdb_id): INT UNIQUE NOT NULL	/' The Movie Database (TMDb) identifier '/
 	--
 	/' Foreign key to collection the movie belongs to, if any'/

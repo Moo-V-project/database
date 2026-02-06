@@ -14,6 +14,7 @@ Primary entities forming the database foundation:
 - **companies.csv** — production companies
 - **countries.csv** — geographic reference data
 - **genres.csv** — film genre categories
+- **jobs.csv** — jobs list 
 
 ---
 
@@ -34,29 +35,29 @@ Primary entities forming the database foundation:
 
 Maps to `movie` table.
 
-| Column          | Type    | Description                                                                 |
-|-----------------|---------|-----------------------------------------------------------------------------|
-| tmdb_id         | INTEGER | TMDB movie ID (unique)                                                      |
-| title           | STRING  | Film title                                                                  |
-| adult           | BOOLEAN | Adult content flag                                                          |
-| overview        | STRING  | Plot summary                                                                |
-| tagline         | STRING  | Marketing tagline                                                           |
-| budget          | INTEGER | Production budget (USD)                                                     |
-| revenue         | INTEGER | Box office revenue (USD)                                                    |
-| runtime         | INTEGER | Duration in minutes                                                         |
-| release_date    | DATE    | Theatrical release date                                                     |
-| homepage        | STRING  | Official website URL                                                        |
-| poster_url      | STRING  | Full poster image URL                                                       |
-| vote_count      | INTEGER | Number of user ratings                                                      |
-| avg_vote        | FLOAT   | Average rating score                                                        |
-| popularity      | FLOAT   | TMDB popularity metric                                                      |
-| reviews_sum     | STRING  | Aggregated reviews                                                          |
-| collection      | STRING  | Collection name                                                             |
-| keywords        | ARRAY   | Array of keywords(str)                                                      |
-| companies       | ARRAY   | Array of company ids                                                        |
-| genres          | ARRAY   | Array if ids from genres csv                                                |
-| crew_jobs       | ARRAY   | Array of crew member objects: { id: int, job: str }                         |
-| cast_jobs       | ARRAY   | Array of cast member objects: { id: int, job: str, character_name: str }    |
+| Column                 | Type    | Description                                                                 |
+|------------------------|---------|-----------------------------------------------------------------------------|
+| tmdb_id                | INTEGER | TMDB movie ID (unique)                                                      |
+| title                  | STRING  | Film title                                                                  |
+| adult                  | BOOLEAN | Adult content flag                                                          |
+| overview               | STRING  | Plot summary                                                                |
+| tagline                | STRING  | Marketing tagline                                                           |
+| budget                 | INTEGER | Production budget (USD)                                                     |
+| revenue                | INTEGER | Box office revenue (USD)                                                    |
+| runtime                | INTEGER | Duration in minutes                                                         |
+| release_date           | DATE    | Theatrical release date                                                     |
+| homepage               | STRING  | Official website URL                                                        |
+| poster_url             | STRING  | Full poster image URL                                                       |
+| vote_count             | INTEGER | Number of user ratings                                                      |
+| avg_vote               | FLOAT   | Average rating score                                                        |
+| popularity             | FLOAT   | TMDB popularity metric                                                      |
+| reviews_sum            | STRING  | Aggregated reviews                                                          |
+| collection             | STRING  | Collection name                                                             |
+| keywords               | ARRAY   | Array of keywords(str)                                                      |
+| companies              | ARRAY   | Array of company ids                                                        |
+| genres                 | ARRAY   | Array if ids from genres csv                                                |
+| crew_jobs              | ARRAY   | Array of crew member objects: { id: int, job: str }                         |
+| cast_jobs              | ARRAY   | Array of cast member objects: { id: int, character_name: str, job: str }    |
 
 
 **Notes:**
@@ -76,7 +77,7 @@ Maps to `person` table.
 | birth_date         | DATE    | Date of birth                   |
 | profile_image_url  | STRING  | Full profile photo URL          |
 | popularity         | FLOAT   | TMDB popularity metric          |
-| birth_country_id   | INTEGER | FK to countries csv             |
+| birth_country_iso  | STRING  | FK to countries csv             |
 | gender             | INTEGER | TMDB gender code (0-3)          |
 
 ---
@@ -94,7 +95,7 @@ Maps to `company` table.
 |-------------|---------|-------------------------------|
 | tmdb_id     | INTEGER | TMDB company ID (unique)      |
 | name        | STRING  | Company name                  |
-| country_id  | INTEGER | FK to countries csv           |
+| country_iso | STRING  | FK to countries csv           |
 
 ---
 ## countries.csv
@@ -103,7 +104,6 @@ Maps to `country` table.
 
 | Column     | Type    | Description            |
 |------------|---------|------------------------|
-| tmdb_id    | INTEGER | TMDB country id        |
 | iso_3166_1 | STRING  | ISO country code       |
 | name       | STRING  | Full country name      |
 
@@ -124,4 +124,18 @@ Maps to `genre` table.
 
 **Notes:**
 - Fixed TMDB genre list (~20 entries)
+
+---
+
+## jobs.csv
+
+Maps to `job` table.
+
+| Column  | Type    | Description      |
+|---------|---------|------------------|
+| Id      | INTEGER | Job id           |
+| name    | STRING  | Job name         |
+
+**Notes:**
+- Fixed jobs list (includes cast and crew)
 
