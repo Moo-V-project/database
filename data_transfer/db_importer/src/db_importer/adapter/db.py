@@ -194,12 +194,10 @@ def upsert_movie_data(
     movie: Movie,
     cast_credits: list[CastCreditData],
     crew_credits: list[CrewCreditData],
-    genres: list[str],
-    keywords: list[int],
+    genre_ids: list[int],
+    keyword_ids: list[int],
 ) -> None:
     # 1. Clean up data in many-to-many tables for the movie
     # 2. Upsert the movie itself, getting the movie_id
-    # 3. Upsert genres and keywords, getting their ids
-    # 4. Upsert cast and crew, getting people ids
-    # 5. Upsert new many-to-many tables data
+    # 3. Upsert new many-to-many tables data
     raise NotImplementedError
