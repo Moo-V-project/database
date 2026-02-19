@@ -55,7 +55,7 @@ Maps to `movie` table.
 | collection             | STRING  | Collection name                                                                       |
 | keywords               | ARRAY   | Array of keywords(str)                                                                |
 | companies              | ARRAY   | Array of company ids                                                                  |
-| genres                 | ARRAY   | Array if ids from genres csv                                                          |
+| genres                 | ARRAY   | Array of ids from genres csv                                                          |
 | crew_jobs              | ARRAY   | Array of crew member objects: { person_id: int, job_id: int }                         |
 | cast_jobs              | ARRAY   | Array of cast member objects: { person_id: int, job_id: int, character_name: str }    |
 
