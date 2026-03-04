@@ -1,4 +1,4 @@
-@startuml moo-v-db
+@startuml V0.1.0__init
 
 !theme plain
 hide empty methods
@@ -53,7 +53,7 @@ $table(movie, movie) {
 	$column(title): VARCHAR NOT NULL			/' Movie title in English'/
 	$column(adult): BOOLEAN DEFAULT FALSE		/' Is the movie adult-rated? '/
 	$column(overview): VARCHAR 					/' Short movie description'/
-	$column(overview_vector): VECTOR 			/' Vectorized movie overview'/
+	$column(overview_vector): VECTOR(768) 		/' Vectorized movie overview'/
 	$column(tagline): VARCHAR 					/' Movie tagline'/
 	$column(budget): BIGINT CHECK(budget > 0)	/' Movie budget in USD'/
 	$column(revenue): BIGINT CHECK(revenue > 0) /' Total movie revenue in USD'/
@@ -69,7 +69,7 @@ $table(movie, movie) {
 	$column(popularity): FLOAT CHECK(popularity >= 0)
 	/' Vector representation of the summary of the user reviews
 		Gemini has a free API and supports batch requests '/
-	$column(reviews_sum_vector): VECTOR
+	$column(reviews_sum_vector): VECTOR(768)
 	$column(tmdb_id): INT UNIQUE				/' The Movie Database (TMDb) identifier '/
 	--
 	/' Foreign key to collection the movie belongs to, if any'/
