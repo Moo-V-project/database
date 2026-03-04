@@ -73,7 +73,7 @@ $table(movie, movie) {
 	$column(tmdb_id): INT UNIQUE				/' The Movie Database (TMDb) identifier '/
 	--
 	/' Foreign key to collection the movie belongs to, if any'/
-	$fk(collection_id)
+	$fk(collection_id): INT
 }
 movie::collection_id }|--|| collection::id
 
@@ -90,8 +90,8 @@ $table(genre, genre) {
 
 ' Junction table between movies and genres
 $table(movie_genre, movie_genre) {
-	$fk(movie_id)
-	$fk(genre_id)
+	$fk(movie_id): INT NOT NULL
+	$fk(genre_id): INT NOT NULL
 	--
 	$constraint("UNIQUE(movie_id, genre_id)")	/' Unique constraint to avoid duplicates '/
 }
@@ -107,8 +107,8 @@ $table(keyword, keyword) {
 
 ' Junction table between movies and keywords
 $table(movie_keyword, movie_keyword) {
-	$fk(movie_id)
-	$fk(keyword_id)
+	$fk(movie_id): INT NOT NULL
+	$fk(keyword_id): INT NOT NULL
 	--
 	$constraint("UNIQUE(movie_id, keyword_id)")	/' Unique constraint to avoid duplicates '/
 }
@@ -179,8 +179,8 @@ $table(cast_credit, cast_credit) {
 	--
 	$column(character_name): VARCHAR	/' Name of the character played '/
 	--
-	$fk(movie_id): INT
-	$fk(person_id): INT
+	$fk(movie_id): INT NOT NULL
+	$fk(person_id): INT NOT NULL
 	$fk(job_id): INT
 	--
 	$constraint("UNIQUE(movie_id, person_id, job_id, character_name)")	/' Unique constraint to avoid duplicates '/
@@ -193,8 +193,8 @@ cast_credit::job_id }|--|| job::id
 $table(crew_credit, crew_credit) {
 	$pk(id): SERIAL
 	--
-	$fk(movie_id): INT
-	$fk(person_id): INT
+	$fk(movie_id): INT NOT NULL
+	$fk(person_id): INT NOT NULL
 	$fk(job_id): INT
 	--
 	$constraint("UNIQUE(movie_id, person_id, job_id)")	/' Unique constraint to avoid duplicates '/
