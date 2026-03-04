@@ -125,6 +125,18 @@ $table(country, country) {
 }
 
 
+' Defines a production company
+$table(company, company) {
+	$pk(id): SERIAL
+	--
+	$column(name): VARCHAR UNIQUE NOT NULL
+	--
+	$fk(country_id): INT				/' Foreign key to country of origin '/
+}
+
+company::country_id }|--|| country::id
+
+
 ' Defines a gender
 enum GENDER {
 	female
@@ -191,16 +203,16 @@ crew_credit::movie_id }|--|| movie::id
 crew_credit::person_id }|--|| person::id
 crew_credit::job_id }|--|| job::id
 
-
-' Defines a production company
-$table(company, company) {
-	$pk(id): SERIAL
+' Junction table between movies and production companies
+$table(movie_company, movie_company) {
+	$fk(movie_id): INT NOT NULL
+	$fk(company_id): INT NOT NULL
 	--
-	$column(name): VARCHAR UNIQUE NOT NULL
-	--
-	$fk(country_id): INT				/' Foreign key to country of origin '/
+	$constraint("UNIQUE(movie_id, company_id)")	/' Unique constraint to avoid duplicates '/
 }
 
-company::country_id }|--|| country::id
+movie::id ||--|{ movie_company::movie_id
+company::id ||--|{ movie_company::company_id
+
 
 @enduml
