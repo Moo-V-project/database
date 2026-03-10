@@ -7,9 +7,11 @@ from data_transfer.TMDB_Exporter.tmdb_exporter import (
     DEFAULT_CAST_JOB,
     APPROVED_CAST_JOBS,
 )
+from anthropic import Anthropic
+from data_transfer.TMDB_Exporter.reviews_aggregator import ReviewsAggregator
 
 
-# ── Fixtures ───────────────────────────────────────────────────────────────
+# ── Fixtures ──────────────────────────────────────────────────────────────
 
 @pytest.fixture
 def mock_fetcher():
@@ -20,6 +22,18 @@ def mock_fetcher():
 @pytest.fixture
 def exporter(mock_fetcher):
     return TMDBExporter(fetcher=mock_fetcher, output_dir="/tmp/tmdb_test")
+
+@pytest.fixture
+def reviews_aggregator():
+    mock_client = MagicMock(spec=Anthropic)
+    
+    mock_block = MagicMock()
+    mock_block.type = "text"
+    mock_block.text = "PROS:\n- Good acting: ...\nCONS:\n- Slow pacing: ...\nOVERALL:\nScore: 7/10\nAudience: ..."
+    
+    mock_client.messages.create.return_value.content = [mock_block]
+    
+    return ReviewsAggregator(client=mock_client, model="claude-haiku-4-5")
 
 
 # ── _build_image_url ───────────────────────────────────────────────────────
@@ -233,3 +247,16 @@ class TestTransformMovieData:
     def test_company_names_fetched(self):
         result = self.exporter.transform_movie_data(550)
         assert json.loads(result["companies"]) == ["Fox"]
+        
+# ── ReviewsAggregator ───────────────────────────────────────────────
+class TestReviewsAggregator:
+    def test_aggregate_reviews(self, reviews_aggregator):
+        reviews = [
+            {"author": "Alice", "content": "Great movie! Loved the acting."},
+            {"author": "Bob", "content": "Not my cup of tea. Too slow."},
+        ]
+        summary = reviews_aggregator.summarize_reviews(reviews)
+        assert "PROS:" in summary
+        assert "CONS:" in summary
+        assert "OVERALL:" in summary
+        
