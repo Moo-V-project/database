@@ -149,7 +149,7 @@ class TestCaching:
         mock_fetcher.get_countries.assert_called_once()
 
     def test_genres_fetched_once(self, exporter, mock_fetcher):
-        mock_fetcher.get_genres.return_value = {"genres": []}
+        mock_fetcher.get_genres.return_value = []
         exporter.get_genres()
         exporter.get_genres()
         mock_fetcher.get_genres.assert_called_once()
@@ -175,11 +175,11 @@ class TestTransformCountryData:
 
 class TestTransformGenreData:
     def test_known_genre(self, exporter, mock_fetcher):
-        mock_fetcher.get_genres.return_value = {"genres": [{"id": 28, "name": "Action"}]}
+        mock_fetcher.get_genres.return_value = [{"id": 28, "name": "Action"}]
         assert exporter.transform_genre_data(28) == {"tmdb_id": 28, "name": "Action"}
 
     def test_unknown_genre(self, exporter, mock_fetcher):
-        mock_fetcher.get_genres.return_value = {"genres": []}
+        mock_fetcher.get_genres.return_value = []
         assert exporter.transform_genre_data(999) == {"tmdb_id": 999, "name": None}
 
 
@@ -218,7 +218,9 @@ class TestTransformMovieData:
         self.fetcher.get_movie_keywords.return_value = {"keywords": [{"name": "survival"}]}
         self.fetcher.get_movie_credits.return_value = CREDITS_STUB
         self.fetcher.get_company_details.return_value = {"name": "Fox"}
-        self.exporter = TMDBExporter(self.fetcher, output_dir="/tmp/tmdb_test")
+        self.mock_reviews_aggregator = MagicMock(spec=ReviewsAggregator)
+        self.mock_reviews_aggregator.summarize_reviews.return_value = "PROS:\n- Good acting: ...\nCONS:\n- Slow pacing: ...\nOVERALL:\nScore: 7/10\nAudience: ..."
+        self.exporter = TMDBExporter(self.fetcher, self.mock_reviews_aggregator, output_dir="/tmp/tmdb_test")
 
     def test_basic_fields(self):
         result = self.exporter.transform_movie_data(550)

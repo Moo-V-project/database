@@ -4,6 +4,7 @@ import pathlib
 import requests
 from dotenv import load_dotenv
 from typing import Any, Callable
+from .reviews_aggregator import ReviewsAggregator
 
 load_dotenv()
 
@@ -57,8 +58,9 @@ class TMDBFetcher:
 
 
 class TMDBExporter:
-    def __init__(self, fetcher: TMDBFetcher, output_dir: str = "tmdb_csv_exports"):
+    def __init__(self, fetcher: TMDBFetcher,reviews_aggregator: ReviewsAggregator | None = None, output_dir: str = "tmdb_csv_exports"):
         self.fetcher = fetcher
+        self.reviews_aggregator = reviews_aggregator
         self.output_dir = output_dir
         pathlib.Path(self.output_dir).mkdir(parents=True, exist_ok=True)
 
@@ -161,6 +163,8 @@ class TMDBExporter:
         movie = self.get_movie_details(movie_id)
         keywords = self.get_movie_keywords(movie_id).get("keywords", [])
         credits = self.get_movie_credits(movie_id)
+        reviews = self.get_movie_reviews(movie_id).get("results", [])[:10]
+        reviews_sum = self.reviews_aggregator.summarize_reviews(reviews) if self.reviews_aggregator else None
 
         company_names = [
             self.get_company_details(c["id"])["name"]
@@ -182,6 +186,7 @@ class TMDBExporter:
             "vote_count": movie.get("vote_count"),
             "avg_vote": movie.get("vote_average"),
             "popularity": movie.get("popularity"),
+            "reviews_sum": reviews_sum,
             "collection": (movie.get("belongs_to_collection") or {}).get("name"),
             "keywords": self._to_json_array([kw["name"] for kw in keywords]),
             "companies": self._to_json_array(company_names),
@@ -218,9 +223,10 @@ class TMDBExporter:
         return {"iso_3166_1": country["iso_3166_1"], "name": country["english_name"]}
 
     def transform_genre_data(self, genre_id: int) -> dict:
-        genres = self.get_genres().get("genres", [])
+        genres = self.get_genres()
         genre = next((g for g in genres if g["id"] == genre_id), None)
         if not genre:
+            
             return {"tmdb_id": genre_id, "name": None}
         return {"tmdb_id": genre["id"], "name": genre["name"]}
 
