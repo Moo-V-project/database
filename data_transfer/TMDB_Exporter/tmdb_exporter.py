@@ -1,6 +1,7 @@
 import re
 import json
 import pathlib
+from unittest import result
 import requests
 from dotenv import load_dotenv
 from typing import Any, Callable
@@ -13,13 +14,12 @@ DEFAULT_CAST_JOB = "Actor"
 
 
 class TMDBFetcher:
-    def __init__(self, api_key: str | None):
-        self.api_key = api_key
+    def __init__(self, bearer_token: str | None):
         self.base_url = "https://api.themoviedb.org/3"
         self.image_base_url = "https://image.tmdb.org/t/p/original"
         self.session = requests.Session()
         self.session.headers.update({
-            "Authorization": f"Bearer {self.api_key}",
+            "Authorization": f"Bearer {bearer_token}",
             "accept": "application/json",
         })
 
@@ -48,7 +48,8 @@ class TMDBFetcher:
         return self.fetch(f"company/{company_id}")
 
     def get_countries(self) -> list[dict]:
-        return self.fetch("configuration/countries")["countries"]
+        result = self.fetch("configuration/countries")
+        return result if isinstance(result, list) else []
 
     def get_genres(self) -> dict:
         return self.fetch("genre/movie/list")["genres"]

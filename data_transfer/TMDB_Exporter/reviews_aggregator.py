@@ -28,6 +28,7 @@ class ReviewsAggregator:
                     Audience: [who would enjoy this film and why, 2-3 sentences max]
 
                     Keep each point concise. Maximum 3 pros and 3 cons."""
+                    
         if self.client is None:
             raise ValueError("Anthropic client not provided for ReviewsAggregator.")
         message = self.client.messages.create(
