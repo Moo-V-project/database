@@ -3,3 +3,6 @@ python-dotenv
 pytest
 anthropic
 json
+re
+typing
+csv

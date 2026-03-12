@@ -262,3 +262,15 @@ class TestReviewsAggregator:
         assert "CONS:" in summary
         assert "OVERALL:" in summary
         
+# ── _export_csv ───────────────────────────────────────────────────────
+class TestExportCsv:
+    def test_export_csv(self, exporter, tmp_path):
+        data = [{"id": 1, "name": "Test"}, {"id": 2, "name": "Another"}]
+        output_file = tmp_path / "test.csv"
+        exporter._export_csv(data, output_file)
+        assert output_file.exists()
+        with output_file.open() as f:
+            lines = f.read().splitlines()
+            assert lines[0] == "id,name"
+            assert lines[1] == "1,Test"
+            assert lines[2] == "2,Another"
