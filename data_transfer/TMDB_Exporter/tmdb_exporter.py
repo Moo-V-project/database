@@ -1,8 +1,8 @@
 import re
 import json
 import pathlib
-from unittest import result
 import requests
+import csv
 from dotenv import load_dotenv
 from typing import Any, Callable
 from .reviews_aggregator import ReviewsAggregator
@@ -158,6 +158,15 @@ class TMDBExporter:
     def _build_crew_jobs(self, crew: list[dict]) -> list[dict]:
         return [{"id": member["id"], "job": member.get("job", "")} for member in crew]
 
+    def _export_csv(self, data: list[dict], output_path: pathlib.Path) -> None:
+        if not data:
+            return
+        with output_path.open("w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=data[0].keys())
+            writer.writeheader()
+            for row in data:
+                writer.writerow(row)
+                    
     # ── Public transform methods ───────────────────────────────────────
 
     def transform_movie_data(self, movie_id: int) -> dict:
@@ -233,3 +242,30 @@ class TMDBExporter:
 
     def transform_job_data(self, job_name: str) -> dict:
         return {"id": self._get_or_create_job_id(job_name), "name": job_name}
+    
+    # ── Public export methods ────────────────────────────────────────
+    def export_movies(self, movie_ids: list[int]) -> None:
+        movies_data = [self.transform_movie_data(movie_id) for movie_id in movie_ids]
+        self._export_csv(movies_data, pathlib.Path(self.output_dir) / "movies.csv")
+        
+    def export_people(self, person_ids: list[int]) -> None:
+        people_data = [self.transform_person_data(person_id) for person_id in person_ids]
+        self._export_csv(people_data, pathlib.Path(self.output_dir) / "people.csv")
+        
+    def export_companies(self, company_ids: list[int]) -> None:
+        companies_data = [self.transform_company_data(company_id) for company_id in company_ids]
+        self._export_csv(companies_data, pathlib.Path(self.output_dir) / "companies.csv")
+        
+    def export_countries(self) -> None:
+        countries_data = [self.transform_country_data(c["iso_3166_1"]) for c in self.get_countries()]
+        self._export_csv(countries_data, pathlib.Path(self.output_dir) / "countries.csv")
+    
+    def export_genres(self) -> None:
+        genres_data = [self.transform_genre_data(g["id"]) for g in self.get_genres()]
+        self._export_csv(genres_data, pathlib.Path(self.output_dir) / "genres.csv")
+        
+    def export_jobs(self) -> None:
+        jobs_data = [self.transform_job_data(job_name) for job_name in self._jobs_cache.keys()]
+        self._export_csv(jobs_data, pathlib.Path(self.output_dir) / "jobs.csv")
+        
+        
