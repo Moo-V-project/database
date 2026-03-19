@@ -8,29 +8,29 @@ Gender = Literal["male", "female", "non-binary"] | None
 
 
 class Genre:
-    def __init__(self, tmdb_id: int, name: str):
+    def __init__(self, name: str) -> None:
         self.name = name
 
 
 class Country:
-    def __init__(self, name: str, iso_3166_1: str):
+    def __init__(self, name: str, iso_3166_1: str) -> None:
         self.name = name
         self.iso_3166_1 = iso_3166_1
 
 
 class Company:
-    def __init__(self, tmdb_id: int, name: str, country_id: int | None):
+    def __init__(self, name: str, country_id: int | None) -> None:
         self.name = name
         self.country_id = country_id
 
 
 class Job:
-    def __init__(self, name: str):
+    def __init__(self, name: str) -> None:
         self.name = name
 
 
 class Collection:
-    def __init__(self, tmdb_id: int, name: str):
+    def __init__(self, name: str) -> None:
         self.name = name
 
 
@@ -43,7 +43,7 @@ class Person:
         popularity: float | None,
         gender: Gender | None,
         birth_country_id: int | None,
-    ):
+    ) -> None:
         self.name = name
         self.birth_date = birth_date
         self.profile_image = profile_image
@@ -72,7 +72,7 @@ class Movie:
         popularity: float | None,
         reviews_sum_vector: NDArray[int_] | None,
         collection_id: int | None,
-    ):
+    ) -> None:
         self.tmdb_id = tmdb_id
         self.title = title
         self.adult = adult
@@ -98,7 +98,7 @@ class CastCreditData:
         person_id: int,
         job_id: int,
         character_name: str,
-    ):
+    ) -> None:
         self.person_id = person_id
         self.job_id = job_id
         self.character_name = character_name
@@ -109,6 +109,6 @@ class CrewCreditData:
         self,
         person_id: int,
         job_id: int,
-    ):
+    ) -> None:
         self.person_id = person_id
         self.job_id = job_id
