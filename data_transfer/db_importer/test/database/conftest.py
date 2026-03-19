@@ -4,9 +4,14 @@ from typing import Any, Generator
 
 import psycopg
 import pytest
+from test_cases import SimpleInsertTestCase, simple_insert_test_cases
 from testcontainers.postgres import (  # type: ignore[import-untyped]
     PostgresContainer,
 )
+
+from db_importer.adapter import db, models
+
+FIXTURE_DIR = Path(__file__).parent.parent / "fixtures"
 
 PG_USER = "postgres"
 PG_PASSWORD = "password"
@@ -16,28 +21,32 @@ PG_DB = "moo-v"
 @pytest.fixture(scope="package")
 def postgres_container() -> Generator[PostgresContainer, Any, None]:
     with PostgresContainer(
-        "postgres:18", username=PG_USER, password=PG_PASSWORD, dbname=PG_DB
+        "pgvector/pgvector:pg18",
+        username=PG_USER,
+        password=PG_PASSWORD,
+        dbname=PG_DB,
     ) as postgres:
         yield postgres
 
 
 @pytest.fixture(scope="package")
-def migrated_postgres(postgres_container):
-    migrations_dir = Path(__file__).parent / "migrations"
+def migrated_postgres(
+    postgres_container: PostgresContainer,
+) -> Generator[PostgresContainer, Any, None]:
+    migrations_dir = FIXTURE_DIR / "database" / "migrations"
 
-    jdbc_url = postgres_container.get_connection_url().replace(
-        "postgresql+psycopg2", "jdbc:postgresql"
-    )
+    jdbc_url = f"jdbc:postgresql://{postgres_container.get_container_host_ip()}:{5432}/{PG_DB}"
 
     result = subprocess.run(
         [
             "docker",
             "run",
             "--rm",
-            "--network",
-            f"container:{postgres_container._container.id}",
+            f"--network=container:{postgres_container._container.id}",
             "-v",
-            f"{migrations_dir}:/flyway/sql",
+            f"{migrations_dir / 'sql'}:/flyway/sql",
+            "-v",
+            f"{migrations_dir / 'flyway.toml'}:/flyway/conf/flyway.toml",
             "flyway/flyway",
             f"-url={jdbc_url}",
             f"-user={PG_USER}",
@@ -56,7 +65,7 @@ def migrated_postgres(postgres_container):
 
 @pytest.fixture(scope="function")
 def pg_connection(
-    migrated_postgres,
+    migrated_postgres: PostgresContainer,
 ) -> Generator[psycopg.Connection[tuple[Any, ...]], Any, None]:
     conn = psycopg.connect(
         host=migrated_postgres.get_container_host_ip(),
@@ -70,3 +79,11 @@ def pg_connection(
 
     conn.rollback()
     conn.close()
+
+
+@pytest.fixture(
+    scope="class",
+    params=simple_insert_test_cases,
+)
+def case(request) -> SimpleInsertTestCase:  # noqa: ANN001
+    return request.param
