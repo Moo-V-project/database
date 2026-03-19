@@ -47,85 +47,72 @@ def get_db_conn(
     return conn
 
 
-def upsert_countries(
-    cursor: psycopg.Cursor, countries: list[Country]
-) -> list[int]:
+def insert_countries(cursor: psycopg.Cursor, countries: list[Country]) -> None:
     """
-    Upserts a country into the database.
+    Inserts countries into the database.
 
     Args:
         cursor (psycopg.Cursor): The database cursor.
-        country (Country): The Country object to be upserted.
-
-    Returns:
-        list[int]: The IDs of the upserted countries.
+        countries (list[Country]): The list of Country objects to be inserted.
     """
     query = """
     INSERT INTO country (name, iso_3166_1)
     VALUES (%s, %s)
-    ON CONFLICT DO NOTHING
-    RETURNING id;
+    ON CONFLICT DO NOTHING;
     """
 
     cursor.executemany(
         query,
         [(country.name, country.iso_3166_1) for country in countries],
-        returning=True,
     )
 
-    ids = [-1] * len(countries)
 
-    for i, _ in enumerate(cursor.results()):
-        fetched_data = cursor.fetchone()
-        if fetched_data is None:
-            raise psycopg.ProgrammingError("No query result to fetch")
-
-        ids[i] = fetched_data[0]
-
-    return ids
-
-
-def upsert_genres(cursor: psycopg.Cursor, genres: list[Genre]) -> list[int]:
+def get_all_country_codes(cursor: psycopg.Cursor) -> list[tuple[int, str]]:
     """
-    Upserts a genre into the database.
+    Retrieves all country IDs and their corresponding ISO 3166-1 codes from the database.
+
+    Args:
+        cursor (psycopg.Cursor): The database cursor."""
+
+    cursor.execute("SELECT id, iso_3166_1 FROM country ORDER BY id")
+    return cursor.fetchall()
+
+
+def insert_genres(cursor: psycopg.Cursor, genres: list[Genre]) -> None:
+    """
+    Inserts genres into the database.
 
     Args:
         cursor (psycopg.Cursor): The database cursor.
-        genres (list[Genre]): The list of Genre objects to be upserted.
-
-    Returns:
-        list[int]: The IDs of the upserted genres.
+        genres (list[Genre]): The list of Genre objects to be inserted.
     """
     query = """
     INSERT INTO genre (name)
     VALUES (%s)
-    ON CONFLICT DO NOTHING
-    RETURNING id;
+    ON CONFLICT DO NOTHING;
     """
 
     cursor.executemany(
-        query, [(genre.name) for genre in genres], returning=True
+        query, [(genre.name,) for genre in genres], returning=True
     )
 
-    ids = [-1] * len(genres)
 
-    for i, _ in enumerate(cursor.results()):
-        fetched_data = cursor.fetchone()
-        if fetched_data is None:
-            raise psycopg.ProgrammingError("No query result to fetch")
+def get_all_genres(cursor: psycopg.Cursor) -> list[tuple[int, str]]:
+    """
+    Retrieves all genre IDs and their corresponding names from the database.
 
-        ids[i] = fetched_data[0]
+    Args:
+        cursor (psycopg.Cursor): The database cursor.
+    """
+    cursor.execute("SELECT id, name FROM genre ORDER BY id")
+    return cursor.fetchall()
 
-    return ids
 
-
-def upsert_companies(
-    cursor: psycopg.Cursor, companies: list[Company]
-) -> list[int]:
+def insert_companies(cursor: psycopg.Cursor, companies: list[Company]) -> None:
     query = """
     INSERT INTO company (name, country_id)
-    VALUES (%s)
-    ON CONFLICT DO UPDATE SET country_id = EXCLUDED.country_id
+    VALUES (%s, %s)
+    ON CONFLICT DO NOTHING
     RETURNING id;
     """
 
@@ -133,19 +120,8 @@ def upsert_companies(
         query, [(company.name, company.country_id) for company in companies]
     )
 
-    ids = [-1] * len(companies)
 
-    for i, _ in enumerate(cursor.results()):
-        fetched_data = cursor.fetchone()
-        if fetched_data is None:
-            raise psycopg.ProgrammingError("No query result to fetch")
-
-        ids[i] = fetched_data[0]
-
-    return ids
-
-
-def upsert_jobs(cursor: psycopg.Cursor, jobs: list[Job]) -> list[int]:
+def insert_jobs(cursor: psycopg.Cursor, jobs: list[Job]) -> list[int]:
     raise NotImplementedError
 
 
