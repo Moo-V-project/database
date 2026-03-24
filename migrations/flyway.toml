@@ -1,0 +1,10 @@
+name = "Moo-V"
+
+[flyway]
+locations               = ["filesystem:sql"]
+validateMigrationNaming = true
+validateOnMigrate       = true
+
+# DB URl -- FLYWAY_URL
+# DB user -- FLYWAY_USER
+# DB password -- FLYWAY_PASSWORD

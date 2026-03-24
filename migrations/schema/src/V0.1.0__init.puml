@@ -1,4 +1,4 @@
-@startuml moo-v-db
+@startuml V0.1.0__init
 
 !theme plain
 hide empty methods
@@ -53,7 +53,7 @@ $table(movie, movie) {
 	$column(title): VARCHAR NOT NULL			/' Movie title in English'/
 	$column(adult): BOOLEAN DEFAULT FALSE		/' Is the movie adult-rated? '/
 	$column(overview): VARCHAR 					/' Short movie description'/
-	$column(overview_vector): VECTOR 			/' Vectorized movie overview'/
+	$column(overview_vector): VECTOR(768) 		/' Vectorized movie overview'/
 	$column(tagline): VARCHAR 					/' Movie tagline'/
 	$column(budget): BIGINT CHECK(budget > 0)	/' Movie budget in USD'/
 	$column(revenue): BIGINT CHECK(revenue > 0) /' Total movie revenue in USD'/
@@ -69,11 +69,11 @@ $table(movie, movie) {
 	$column(popularity): FLOAT CHECK(popularity >= 0)
 	/' Vector representation of the summary of the user reviews
 		Gemini has a free API and supports batch requests '/
-	$column(reviews_sum_vector): VECTOR
-	$column(tmdb_id): INT UNIQUE NOT NULL	/' The Movie Database (TMDb) identifier '/
+	$column(reviews_sum_vector): VECTOR(768)
+	$column(tmdb_id): INT UNIQUE				/' The Movie Database (TMDb) identifier '/
 	--
 	/' Foreign key to collection the movie belongs to, if any'/
-	$fk(collection_id)
+	$fk(collection_id): INT
 }
 movie::collection_id }|--|| collection::id
 
@@ -90,8 +90,8 @@ $table(genre, genre) {
 
 ' Junction table between movies and genres
 $table(movie_genre, movie_genre) {
-	$fk(movie_id)
-	$fk(genre_id)
+	$fk(movie_id): INT NOT NULL
+	$fk(genre_id): INT NOT NULL
 	--
 	$constraint("UNIQUE(movie_id, genre_id)")	/' Unique constraint to avoid duplicates '/
 }
@@ -107,8 +107,8 @@ $table(keyword, keyword) {
 
 ' Junction table between movies and keywords
 $table(movie_keyword, movie_keyword) {
-	$fk(movie_id)
-	$fk(keyword_id)
+	$fk(movie_id): INT NOT NULL
+	$fk(keyword_id): INT NOT NULL
 	--
 	$constraint("UNIQUE(movie_id, keyword_id)")	/' Unique constraint to avoid duplicates '/
 }
@@ -123,6 +123,18 @@ $table(country, country) {
 	$column(name): VARCHAR UNIQUE NOT NULL
 	$column(iso_3166_1): CHAR(2) UNIQUE NOT NULL
 }
+
+
+' Defines a production company
+$table(company, company) {
+	$pk(id): SERIAL
+	--
+	$column(name): VARCHAR UNIQUE NOT NULL
+	--
+	$fk(country_id): INT				/' Foreign key to country of origin '/
+}
+
+company::country_id }|--|| country::id
 
 
 ' Defines a gender
@@ -167,8 +179,8 @@ $table(cast_credit, cast_credit) {
 	--
 	$column(character_name): VARCHAR	/' Name of the character played '/
 	--
-	$fk(movie_id): INT
-	$fk(person_id): INT
+	$fk(movie_id): INT NOT NULL
+	$fk(person_id): INT NOT NULL
 	$fk(job_id): INT
 	--
 	$constraint("UNIQUE(movie_id, person_id, job_id, character_name)")	/' Unique constraint to avoid duplicates '/
@@ -181,8 +193,8 @@ cast_credit::job_id }|--|| job::id
 $table(crew_credit, crew_credit) {
 	$pk(id): SERIAL
 	--
-	$fk(movie_id): INT
-	$fk(person_id): INT
+	$fk(movie_id): INT NOT NULL
+	$fk(person_id): INT NOT NULL
 	$fk(job_id): INT
 	--
 	$constraint("UNIQUE(movie_id, person_id, job_id)")	/' Unique constraint to avoid duplicates '/
@@ -191,16 +203,16 @@ crew_credit::movie_id }|--|| movie::id
 crew_credit::person_id }|--|| person::id
 crew_credit::job_id }|--|| job::id
 
-
-' Defines a production company
-$table(company, company) {
-	$pk(id): SERIAL
+' Junction table between movies and production companies
+$table(movie_company, movie_company) {
+	$fk(movie_id): INT NOT NULL
+	$fk(company_id): INT NOT NULL
 	--
-	$column(name): VARCHAR UNIQUE NOT NULL
-	--
-	$fk(country_id): INT				/' Foreign key to country of origin '/
+	$constraint("UNIQUE(movie_id, company_id)")	/' Unique constraint to avoid duplicates '/
 }
 
-company::country_id }|--|| country::id
+movie::id ||--|{ movie_company::movie_id
+company::id ||--|{ movie_company::company_id
+
 
 @enduml
