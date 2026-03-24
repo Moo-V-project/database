@@ -176,13 +176,20 @@ class TMDBExporter:
 
     def _build_crew_jobs(self, crew: list[dict]) -> list[dict]:
         return [{"id": member["id"], "job": member.get("job", "")} for member in crew]
+    
+    def _filter_new_ids(self, ids: set[int], exported_ids: set[int]) -> set[int]:
+        new_ids  = ids - exported_ids
+        exported_ids.update(new_ids)    
+        return new_ids
 
     def _export_csv(self, data: list[dict], output_path: pathlib.Path) -> None:
         if not data:
             return
-        with output_path.open("w", newline="", encoding="utf-8") as f:
+        file_exists = output_path.exists()
+        with output_path.open("a", newline="", encoding="utf-8") as f:
             writer = csv.DictWriter(f, fieldnames=data[0].keys())
-            writer.writeheader()
+            if not file_exists:
+                writer.writeheader()
             for row in data:
                 writer.writerow(row)
                     
