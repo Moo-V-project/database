@@ -232,7 +232,7 @@ class TMDBExporter:
         }
 
     def transform_person_data(self, person_id: int) -> dict:
-        person = self.get_person_details(person_id)
+        person = self._get_with_cache(self._people_cache, person_id, self.fetcher.get_person_details)
         return {
             "tmdb_id": person.get("id"),
             "name": person.get("name"),
@@ -243,7 +243,7 @@ class TMDBExporter:
         }
 
     def transform_company_data(self, company_id: int) -> dict:
-        company = self.get_company_details(company_id)
+        company = self._get_with_cache(self._companies_cache, company_id, self.fetcher.get_company_details)
         return {
             "tmdb_id": company.get("id"),
             "name": company.get("name"),
@@ -270,18 +270,30 @@ class TMDBExporter:
         return {"id": self._get_or_create_job_id(job_name), "name": job_name}
     
     # ── Public export methods ────────────────────────────────────────
-    def export_movies(self, movie_ids: list[int]) -> None:
-        movies_data = [self.transform_movie_data(movie_id) for movie_id in movie_ids]
+    def export_movies(self, movie_id: int) -> None:
+        movies_data = [self.transform_movie_data(movie_id)]
         self._export_csv(movies_data, pathlib.Path(self.output_dir) / "movies.csv")
         
-    def export_people(self, person_ids: list[int]) -> None:
-        people_data = [self.transform_person_data(person_id) for person_id in person_ids]
+    def export_people(self, movie_id: int) -> None:
+        credits = self.get_movie_credits(movie_id)
+        cast_ids = {member["id"] for member in credits.get("cast", [])}
+        crew_ids = {member["id"] for member in credits.get("crew", [])}
+        all_people_ids = cast_ids | crew_ids
+        
+        people_data = []
+        
+        for person_id in self._filter_new_ids(all_people_ids, self._exported_people):
+            people_data.append(self.transform_person_data(person_id))
         self._export_csv(people_data, pathlib.Path(self.output_dir) / "people.csv")
-        
-    def export_companies(self, company_ids: list[int]) -> None:
-        companies_data = [self.transform_company_data(company_id) for company_id in company_ids]
-        self._export_csv(companies_data, pathlib.Path(self.output_dir) / "companies.csv")
-        
+
+    def export_companies(self, movie_id: int) -> None:
+        company_data = []
+        company_ids = {c["id"] for c in self.get_movie_details(movie_id).get("production_companies", [])}
+        for company_id in self._filter_new_ids(company_ids, self._exported_companies):
+                company_data.append(self.transform_company_data(company_id))
+        self._export_csv(company_data, pathlib.Path(self.output_dir) / "companies.csv")        
+       
+     
     def export_countries(self) -> None:
         countries_data = [self.transform_country_data(c["iso_3166_1"]) for c in self.get_countries()]
         self._export_csv(countries_data, pathlib.Path(self.output_dir) / "countries.csv")
