@@ -1,14 +1,14 @@
 import json
 import pytest
 from unittest.mock import MagicMock
-from data_transfer.TMDB_Exporter.tmdb_exporter import (
+from data_transfer.tmdb_exporter.tmdb_exporter import (
     TMDBExporter,
     TMDBFetcher,
     DEFAULT_CAST_JOB,
     APPROVED_CAST_JOBS,
 )
 from anthropic import Anthropic
-from data_transfer.TMDB_Exporter.reviews_aggregator import ReviewsAggregator
+from data_transfer.tmdb_exporter.reviews_aggregator import ReviewsAggregator
 
 
 # ── Fixtures ──────────────────────────────────────────────────────────────

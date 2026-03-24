@@ -1,6 +1,6 @@
 import pytest 
-from data_transfer.TMDB_Exporter.tmdb_exporter import TMDBExporter
-from data_transfer.TMDB_Exporter.tmdb_exporter import TMDBFetcher
+from data_transfer.tmdb_exporter.tmdb_exporter import TMDBExporter
+from data_transfer.tmdb_exporter.tmdb_exporter import TMDBFetcher
 import os
 import dotenv  
 
