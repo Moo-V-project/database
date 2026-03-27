@@ -46,5 +46,7 @@ class ReviewsAggregator:
             ],
             model=self.model,
         )
-        result = next( block for block in message.content if block.type == "text").text.strip()
-        return result   
+        result = next(
+            block for block in message.content if block.type == "text"
+        ).text.strip()
+        return result

@@ -20,10 +20,12 @@ class TMDBFetcher:
         self.base_url = "https://api.themoviedb.org/3"
         self.image_base_url = "https://image.tmdb.org/t/p/original"
         self.session = requests.Session()
-        self.session.headers.update({
-            "Authorization": f"Bearer {bearer_token}",
-            "accept": "application/json",
-        })
+        self.session.headers.update(
+            {
+                "Authorization": f"Bearer {bearer_token}",
+                "accept": "application/json",
+            }
+        )
 
     def fetch(self, endpoint: str, params: dict[str, str] | None = None) -> dict:
         url = f"{self.base_url}/{endpoint}"
@@ -74,7 +76,12 @@ class TMDBFetcher:
 
 
 class TMDBExporter:
-    def __init__(self, fetcher: TMDBFetcher, reviews_aggregator: ReviewsAggregator | None = None, output_dir: str = "tmdb_csv_exports"):
+    def __init__(
+        self,
+        fetcher: TMDBFetcher,
+        reviews_aggregator: ReviewsAggregator | None = None,
+        output_dir: str = "tmdb_csv_exports",
+    ):
         self.fetcher = fetcher
         self.reviews_aggregator = reviews_aggregator
         self.output_dir = pathlib.Path(output_dir)
@@ -95,13 +102,19 @@ class TMDBExporter:
         # ── Progress Persistence ───────────────────────────────────────────
         self._exported_movies = self._load_existing_ids(self.output_dir / "movies.csv")
         self._exported_people = self._load_existing_ids(self.output_dir / "people.csv")
-        self._exported_companies = self._load_existing_ids(self.output_dir / "companies.csv")
-        
-        logger.info(f"Initialized. Existing: {len(self._exported_movies)} movies, {len(self._exported_people)} people.")
+        self._exported_companies = self._load_existing_ids(
+            self.output_dir / "companies.csv"
+        )
+
+        logger.info(
+            f"Initialized. Existing: {len(self._exported_movies)} movies, {len(self._exported_people)} people."
+        )
 
     # ── Cache helpers ──────────────────────────────────────────────────
 
-    def _get_with_cache(self, cache: dict[int, Any], key: int, fetch_method: Callable[[int], Any]) -> Any:
+    def _get_with_cache(
+        self, cache: dict[int, Any], key: int, fetch_method: Callable[[int], Any]
+    ) -> Any:
         if key not in cache:
             cache[key] = fetch_method(key)
         return cache[key]
@@ -120,22 +133,34 @@ class TMDBExporter:
     # ── Cached fetchers ────────────────────────────────────────────────
 
     def get_movie_details(self, movie_id: int) -> dict:
-        return self._get_with_cache(self._movies_cache, movie_id, self.fetcher.get_movie_details)
+        return self._get_with_cache(
+            self._movies_cache, movie_id, self.fetcher.get_movie_details
+        )
 
     def get_movie_keywords(self, movie_id: int) -> dict:
-        return self._get_with_cache(self._movie_keywords_cache, movie_id, self.fetcher.get_movie_keywords)
+        return self._get_with_cache(
+            self._movie_keywords_cache, movie_id, self.fetcher.get_movie_keywords
+        )
 
     def get_movie_reviews(self, movie_id: int) -> dict:
-        return self._get_with_cache(self._movie_reviews_cache, movie_id, self.fetcher.get_movie_reviews)
+        return self._get_with_cache(
+            self._movie_reviews_cache, movie_id, self.fetcher.get_movie_reviews
+        )
 
     def get_movie_credits(self, movie_id: int) -> dict:
-        return self._get_with_cache(self._movie_credits_cache, movie_id, self.fetcher.get_movie_credits)
+        return self._get_with_cache(
+            self._movie_credits_cache, movie_id, self.fetcher.get_movie_credits
+        )
 
     def get_person_details(self, person_id: int) -> dict:
-        return self._get_with_cache(self._people_cache, person_id, self.fetcher.get_person_details)
+        return self._get_with_cache(
+            self._people_cache, person_id, self.fetcher.get_person_details
+        )
 
     def get_company_details(self, company_id: int) -> dict:
-        return self._get_with_cache(self._companies_cache, company_id, self.fetcher.get_company_details)
+        return self._get_with_cache(
+            self._companies_cache, company_id, self.fetcher.get_company_details
+        )
 
     def get_countries(self) -> list[dict]:
         if self._countries_cache is None:
@@ -157,7 +182,7 @@ class TMDBExporter:
 
     def _extract_job_from_character(self, character_name: str) -> str:
         """Return job title parsed from character name, or 'Actor'
-            by default."""
+        by default."""
         if not character_name:
             return DEFAULT_CAST_JOB
         match = re.search(r"\(([^)]+)\)", character_name)
@@ -193,8 +218,10 @@ class TMDBExporter:
         movie = self.get_movie_details(movie_id)
         keywords = self.get_movie_keywords(movie_id).get("keywords", [])
         credits = self.get_movie_credits(movie_id)
-        
-        company_names = [c["name"] for c in movie.get("production_companies", []) if c.get("name")]
+
+        company_names = [
+            c["name"] for c in movie.get("production_companies", []) if c.get("name")
+        ]
 
         reviews_sum = None
         if self.reviews_aggregator:
@@ -221,12 +248,25 @@ class TMDBExporter:
             "collection": (movie.get("belongs_to_collection") or {}).get("name"),
             "keywords": self._to_json_array([kw["name"] for kw in keywords]),
             "companies": self._to_json_array(company_names),
-            "genres": self._to_json_array([g.get("id") for g in movie.get("genres", []) if g.get("id")]),
-            "crew_jobs": self._to_json_array([{"id": m["id"], "job": m.get("job", "")} for m in credits.get("crew", [])]),
-            "cast_jobs": self._to_json_array([
-                {"id": m["id"], "character": m.get("character", ""), "job": self._extract_job_from_character(m.get("character", ""))}
-                for m in credits.get("cast", [])
-            ]),
+            "genres": self._to_json_array(
+                [g.get("id") for g in movie.get("genres", []) if g.get("id")]
+            ),
+            "crew_jobs": self._to_json_array(
+                [
+                    {"id": m["id"], "job": m.get("job", "")}
+                    for m in credits.get("crew", [])
+                ]
+            ),
+            "cast_jobs": self._to_json_array(
+                [
+                    {
+                        "id": m["id"],
+                        "character": m.get("character", ""),
+                        "job": self._extract_job_from_character(m.get("character", "")),
+                    }
+                    for m in credits.get("cast", [])
+                ]
+            ),
         }
 
     def transform_person_data(self, person_id: int) -> dict:
@@ -246,26 +286,27 @@ class TMDBExporter:
             "tmdb_id": company.get("id"),
             "name": company.get("name"),
             "country_iso": company.get("origin_country") or None,
-        }   
-        
+        }
+
     def transform_genre_data(self, genre: dict) -> dict:
         return {
             "tmdb_id": genre.get("id"),
             "name": genre.get("name"),
         }
-        
+
     def transform_country_data(self, country: dict) -> dict:
         return {
             "iso_3166_1": country.get("iso_3166_1") or None,
             "name": country.get("english_name"),
         }
-        
+
     def transform_job_data(self, job_name: str) -> dict:
         job_id = self._get_or_create_job_id(job_name)
         return {
             "id": job_id,
             "name": job_name,
         }
+
     # ── Public export methods ────────────────────────────────────────
 
     def export_movies(self, movie_id: int) -> None:
@@ -282,29 +323,29 @@ class TMDBExporter:
             logger.error(f"Failed movie export {movie_id}: {e}")
 
     def export_people(self, movie_id: int) -> None:
-         credits = self.get_movie_credits(movie_id)
-         cast_ids = {member["id"] for member in credits.get("cast", [])}
-         crew_ids = {member["id"] for member in credits.get("crew", [])}
-         all_people_ids = cast_ids | crew_ids
-         new_ids = self._filter_new_ids(all_people_ids, self._exported_people)
-         if not new_ids:
+        credits = self.get_movie_credits(movie_id)
+        cast_ids = {member["id"] for member in credits.get("cast", [])}
+        crew_ids = {member["id"] for member in credits.get("crew", [])}
+        all_people_ids = cast_ids | crew_ids
+        new_ids = self._filter_new_ids(all_people_ids, self._exported_people)
+        if not new_ids:
             return
 
-         people_to_save = []
-         for person_id in new_ids:
+        people_to_save = []
+        for person_id in new_ids:
             try:
                 person_data = self.transform_person_data(person_id)
                 people_to_save.append(person_data)
                 self._exported_people.add(person_id)
             except Exception as e:
-                logger.warning(f"Skip person {person_id}: {e}") 
+                logger.warning(f"Skip person {person_id}: {e}")
 
-         self._export_csv(people_to_save, self.output_dir / "people.csv")
+        self._export_csv(people_to_save, self.output_dir / "people.csv")
 
     def export_companies(self, movie_id: int) -> None:
         movie = self.get_movie_details(movie_id)
         company_ids = {c["id"] for c in movie.get("production_companies", [])}
-        
+
         new_ids = self._filter_new_ids(company_ids, self._exported_companies)
         if not new_ids:
             return
@@ -331,12 +372,15 @@ class TMDBExporter:
         self._export_csv(data, self.output_dir / "genres.csv")
 
     def export_jobs(self) -> None:
-        data = [self.transform_job_data(job_name) for job_name, job_id in self._jobs_cache.items()]
-        self._export_csv(data, self.output_dir / "jobs.csv") 
-        
+        data = [
+            self.transform_job_data(job_name)
+            for job_name, job_id in self._jobs_cache.items()
+        ]
+        self._export_csv(data, self.output_dir / "jobs.csv")
+
     def export_batch(self, movie_ids: list[int]) -> None:
         self.export_countries()
-        
+
         for movie_id in movie_ids:
             try:
                 self.export_movies(movie_id)
@@ -346,6 +390,6 @@ class TMDBExporter:
             except Exception as e:
                 logger.error(f"Error exporting movie ID {movie_id}: {e}")
             continue
-            
+
         self.export_genres()
         self.export_jobs()
