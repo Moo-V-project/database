@@ -15,26 +15,24 @@ class ReviewsAggregator:
                 for review in reviews[:max_reviews]
             ]
         )
-        prompt = f"""You are a movie review aggregator. Analyze the following reviews and provide a structured summary. 
-                    Reviews:
-                    {reviews_text}
+        prompt = f"""You are a movie review aggregator. Analyze the following reviews and provide a structured summary.
 
-                    Respond in this exact format:
-                    PROS:
-                    - [main advantage]: [brief explanation]
-                    - [main advantage]: [brief explanation]
-                    - [main advantage]: [brief explanation]
+                        Reviews:
+                        {reviews_text}
 
-                    CONS:
-                    - [main drawback]: [brief explanation]
-                    - [main drawback]: [brief explanation]
-                    - [main drawback]: [brief explanation]
-
-                    OVERALL:
-                    Score: [X]/10
-                    Audience: [who would enjoy this film and why, 2-3 sentences max]
-
-                    Keep each point concise. Maximum 3 pros and 3 cons."""
+                        Respond in this exact format:
+                        PROS:
+                        - [main advantage]: [brief explanation]
+                        - [main advantage]: [brief explanation]
+                        - [main advantage]: [brief explanation  ]
+                        CONS:
+                        - [main drawback]: [brief explanation]
+                        - [main drawback]: [brief explanation]
+                        - [main drawback]: [brief explanation]
+                        OVERALL:
+                        Score: [X]/10
+                        Audience: [who would enjoy this film and why, 2-3 sentences max]
+                        Keep each point concise. Maximum 3 pros and 3 cons."""
 
         if self.client is None:
             raise ValueError("Anthropic client not provided for ReviewsAggregator.")
@@ -48,6 +46,5 @@ class ReviewsAggregator:
             ],
             model=self.model,
         )
-        return next(
-            block for block in message.content if block.type == "text"
-        ).text.strip()
+        result = next( block for block in message.content if block.type == "text").text.strip()
+        return result   
