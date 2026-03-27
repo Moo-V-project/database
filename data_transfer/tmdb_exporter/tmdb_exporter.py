@@ -221,84 +221,131 @@ class TMDBExporter:
             "collection": (movie.get("belongs_to_collection") or {}).get("name"),
             "keywords": self._to_json_array([kw["name"] for kw in keywords]),
             "companies": self._to_json_array(company_names),
-            "genres": self._to_json_array([g["id"] for g in movie.get("genres", [])]),
-            "crew_jobs": self._to_json_array(self._build_crew_jobs(credits.get("crew", []))),
-            "cast_jobs": self._to_json_array(self._build_cast_jobs(credits.get("cast", []))),
+            "genres": self._to_json_array([g.get("id") for g in movie.get("genres", []) if g.get("id")]),
+            "crew_jobs": self._to_json_array([{"id": m["id"], "job": m.get("job", "")} for m in credits.get("crew", [])]),
+            "cast_jobs": self._to_json_array([
+                {"id": m["id"], "character": m.get("character", ""), "job": self._extract_job_from_character(m.get("character", ""))}
+                for m in credits.get("cast", [])
+            ]),
         }
 
     def transform_person_data(self, person_id: int) -> dict:
-        person = self._get_with_cache(self._people_cache, person_id, self.fetcher.get_person_details)
+        person = self.get_person_details(person_id)
         return {
             "tmdb_id": person.get("id"),
             "name": person.get("name"),
-            "birth_date": self._format_date(person.get("birthday")),
+            "birth_date": person.get("birthday") or None,
             "profile_image_url": self._build_image_url(person.get("profile_path")),
             "popularity": person.get("popularity"),
-            "birth_country": person.get("place_of_birth"),
+            "birth_country": person.get("place_of_birth") or None,
         }
 
     def transform_company_data(self, company_id: int) -> dict:
-        company = self._get_with_cache(self._companies_cache, company_id, self.fetcher.get_company_details)
+        company = self.get_company_details(company_id)
         return {
             "tmdb_id": company.get("id"),
             "name": company.get("name"),
-            "country_iso": company.get("origin_country"),
+            "country_iso": company.get("origin_country") or None,
+        }   
+        
+    def transform_genre_data(self, genre: dict) -> dict:
+        return {
+            "tmdb_id": genre.get("id"),
+            "name": genre.get("name"),
         }
-
-    def transform_country_data(self, country_iso: str) -> dict:
-        country = next(
-            (c for c in self.get_countries() if c["iso_3166_1"] == country_iso), None
-        )
-        if not country:
-            return {"iso_3166_1": country_iso, "name": None}
-        return {"iso_3166_1": country["iso_3166_1"], "name": country["english_name"]}
-
-    def transform_genre_data(self, genre_id: int) -> dict:
-        genres = self.get_genres()
-        genre = next((g for g in genres if g["id"] == genre_id), None)
-        if not genre:
-            
-            return {"tmdb_id": genre_id, "name": None}
-        return {"tmdb_id": genre["id"], "name": genre["name"]}
-
+        
+    def transform_country_data(self, country: dict) -> dict:
+        return {
+            "iso_3166_1": country.get("iso_3166_1") or None,
+            "name": country.get("english_name"),
+        }
+        
     def transform_job_data(self, job_name: str) -> dict:
-        return {"id": self._get_or_create_job_id(job_name), "name": job_name}
-    
+        job_id = self._get_or_create_job_id(job_name)
+        return {
+            "id": job_id,
+            "name": job_name,
+        }
     # ── Public export methods ────────────────────────────────────────
+
     def export_movies(self, movie_id: int) -> None:
-        movies_data = [self.transform_movie_data(movie_id)]
-        self._export_csv(movies_data, pathlib.Path(self.output_dir) / "movies.csv")
-        
+        if movie_id in self._exported_movies:
+            logger.debug(f"Movie {movie_id} is already exported.")
+            return
+
+        try:
+            logger.info(f"Exporting movie: {movie_id}")
+            movie_data = [self.transform_movie_data(movie_id)]
+            self._export_csv(movie_data, self.output_dir / "movies.csv")
+            self._exported_movies.add(movie_id)
+        except Exception as e:
+            logger.error(f"Failed movie export {movie_id}: {e}")
+
     def export_people(self, movie_id: int) -> None:
-        credits = self.get_movie_credits(movie_id)
-        cast_ids = {member["id"] for member in credits.get("cast", [])}
-        crew_ids = {member["id"] for member in credits.get("crew", [])}
-        all_people_ids = cast_ids | crew_ids
-        
-        people_data = []
-        
-        for person_id in self._filter_new_ids(all_people_ids, self._exported_people):
-            people_data.append(self.transform_person_data(person_id))
-        self._export_csv(people_data, pathlib.Path(self.output_dir) / "people.csv")
+         credits = self.get_movie_credits(movie_id)
+         cast_ids = {member["id"] for member in credits.get("cast", [])}
+         crew_ids = {member["id"] for member in credits.get("crew", [])}
+         all_people_ids = cast_ids | crew_ids
+         new_ids = self._filter_new_ids(all_people_ids, self._exported_people)
+         if not new_ids:
+            return
+
+         people_to_save = []
+         for person_id in new_ids:
+            try:
+                person_data = self.transform_person_data(person_id)
+                people_to_save.append(person_data)
+                self._exported_people.add(person_id)
+            except Exception as e:
+                logger.warning(f"Skip person {person_id}: {e}") 
+
+         self._export_csv(people_to_save, self.output_dir / "people.csv")
 
     def export_companies(self, movie_id: int) -> None:
-        company_data = []
-        company_ids = {c["id"] for c in self.get_movie_details(movie_id).get("production_companies", [])}
-        for company_id in self._filter_new_ids(company_ids, self._exported_companies):
-                company_data.append(self.transform_company_data(company_id))
-        self._export_csv(company_data, pathlib.Path(self.output_dir) / "companies.csv")        
-       
-     
+        movie = self.get_movie_details(movie_id)
+        company_ids = {c["id"] for c in movie.get("production_companies", [])}
+        
+        new_ids = self._filter_new_ids(company_ids, self._exported_companies)
+        if not new_ids:
+            return
+
+        companies_to_save = []
+        for c_id in new_ids:
+            try:
+                company_data = self.transform_company_data(c_id)
+                companies_to_save.append(company_data)
+                self._exported_companies.add(c_id)
+            except Exception as e:
+                logger.warning(f"Skip company {c_id}: {e}")
+
+        self._export_csv(companies_to_save, self.output_dir / "companies.csv")
+
     def export_countries(self) -> None:
-        countries_data = [self.transform_country_data(c["iso_3166_1"]) for c in self.get_countries()]
-        self._export_csv(countries_data, pathlib.Path(self.output_dir) / "countries.csv")
-    
+        countries = self.get_countries()
+        data = [self.transform_country_data(c) for c in countries]
+        self._export_csv(data, self.output_dir / "countries.csv")
+
     def export_genres(self) -> None:
-        genres_data = [self.transform_genre_data(g["id"]) for g in self.get_genres()]
-        self._export_csv(genres_data, pathlib.Path(self.output_dir) / "genres.csv")
-        
+        genres = self.get_genres()
+        data = [self.transform_genre_data(g) for g in genres]
+        self._export_csv(data, self.output_dir / "genres.csv")
+
     def export_jobs(self) -> None:
-        jobs_data = [self.transform_job_data(job_name) for job_name in self._jobs_cache.keys()]
-        self._export_csv(jobs_data, pathlib.Path(self.output_dir) / "jobs.csv")
+        data = [self.transform_job_data(job_name) for job_name, job_id in self._jobs_cache.items()]
+        self._export_csv(data, self.output_dir / "jobs.csv") 
         
+    def export_batch(self, movie_ids: list[int]) -> None:
+        self.export_countries()
         
+        for movie_id in movie_ids:
+            try:
+                self.export_movies(movie_id)
+                self.export_people(movie_id)
+                self.export_companies(movie_id)
+                logger.info(f"Successfully exported movie ID {movie_id}")
+            except Exception as e:
+                logger.error(f"Error exporting movie ID {movie_id}: {e}")
+            continue
+            
+        self.export_genres()
+        self.export_jobs()
