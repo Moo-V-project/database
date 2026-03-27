@@ -185,34 +185,34 @@ class TMDBExporter:
             writer = csv.DictWriter(f, fieldnames=data[0].keys())
             if not file_exists:
                 writer.writeheader()
-            for row in data:
-                writer.writerow(row)
-                    
+            writer.writerows(data)
+
     # ── Public transform methods ───────────────────────────────────────
 
     def transform_movie_data(self, movie_id: int) -> dict:
         movie = self.get_movie_details(movie_id)
         keywords = self.get_movie_keywords(movie_id).get("keywords", [])
         credits = self.get_movie_credits(movie_id)
-        reviews = self.get_movie_reviews(movie_id).get("results", [])[:10]
-        reviews_sum = self.reviews_aggregator.summarize_reviews(reviews) if self.reviews_aggregator else None
+        
+        company_names = [c["name"] for c in movie.get("production_companies", []) if c.get("name")]
 
-        company_names = [
-            self.get_company_details(c["id"])["name"]
-            for c in movie.get("production_companies", [])
-        ]
+        reviews_sum = None
+        if self.reviews_aggregator:
+            logger.info(f"  [LLM] Summarizing reviews for: {movie.get('title')}")
+            reviews = self.get_movie_reviews(movie_id).get("results", [])[:10]
+            reviews_sum = self.reviews_aggregator.summarize_reviews(reviews)
 
         return {
             "tmdb_id": movie.get("id"),
             "title": movie.get("title"),
             "adult": movie.get("adult"),
             "overview": movie.get("overview"),
-            "tagline": movie.get("tagline"),
-            "budget": movie.get("budget"),
-            "revenue": movie.get("revenue"),
-            "runtime": movie.get("runtime"),
-            "release_date": self._format_date(movie.get("release_date")),
-            "homepage": movie.get("homepage"),
+            "tagline": movie.get("tagline") or None,
+            "budget": movie.get("budget") or None,
+            "revenue": movie.get("revenue") or None,
+            "runtime": movie.get("runtime") or None,
+            "release_date": movie.get("release_date") or None,
+            "homepage": movie.get("homepage") or None,
             "poster_url": self._build_image_url(movie.get("poster_path")),
             "vote_count": movie.get("vote_count"),
             "avg_vote": movie.get("vote_average"),
