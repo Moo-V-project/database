@@ -147,22 +147,17 @@ class TMDBExporter:
             self._genres_cache = self.fetcher.get_genres()
         return self._genres_cache
 
-    def get_keyword_details(self, keyword_id: int) -> dict:
-        return self._get_with_cache(self._keywords_cache, keyword_id, self.fetcher.get_keyword_details)
-
     # ── Private helpers ────────────────────────────────────────────────
 
     def _build_image_url(self, path: str | None) -> str | None:
         return f"{self.fetcher.image_base_url}{path}" if path else None
 
-    def _format_date(self, date_str: str | None) -> str | None:
-        return date_str or None
-
     def _to_json_array(self, items: list) -> str:
         return json.dumps(items, ensure_ascii=False)
 
     def _extract_job_from_character(self, character_name: str) -> str:
-        """Return job title parsed from character name, or 'Actor' by default."""
+        """Return job title parsed from character name, or 'Actor'
+            by default."""
         if not character_name:
             return DEFAULT_CAST_JOB
         match = re.search(r"\(([^)]+)\)", character_name)
