@@ -3,11 +3,13 @@ import json
 import pathlib
 import requests
 import csv
+import logging
 from dotenv import load_dotenv
 from typing import Any, Callable
 from .reviews_aggregator import ReviewsAggregator
 
-load_dotenv()
+# Setup logger
+logger = logging.getLogger(__name__)
 
 APPROVED_CAST_JOBS = {"Voice", "Narrator"}
 DEFAULT_CAST_JOB = "Actor"
