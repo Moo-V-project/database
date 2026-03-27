@@ -56,20 +56,17 @@ class TMDBFetcher:
     def get_genres(self) -> dict:
         return self.fetch("genre/movie/list")["genres"]
 
-    def get_keyword_details(self, keyword_id: int) -> dict:
-        return self.fetch(f"keyword/{keyword_id}")
-    
     def get_popular_movie_ids(self, count_movies: int) -> list[int]:
         movie_ids = []
-        count_page = (count_movies + 19) // 20  # Assuming 20 movies per page
+        count_page = (count_movies + 19) // 20
         for page in range(1, count_page + 1):
             result = self.fetch("movie/popular", params={"page": str(page)})
             movie_ids.extend([movie["id"] for movie in result.get("results", [])])
         return movie_ids[:count_movies]
-    
+
     def get_top_rated_movie_ids(self, count_movies: int) -> list[int]:
         movie_ids = []
-        count_page = (count_movies + 19) // 20  # Assuming 20 movies per page
+        count_page = (count_movies + 19) // 20
         for page in range(1, count_page + 1):
             result = self.fetch("movie/top_rated", params={"page": str(page)})
             movie_ids.extend([movie["id"] for movie in result.get("results", [])])
