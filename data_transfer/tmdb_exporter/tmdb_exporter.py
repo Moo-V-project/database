@@ -106,6 +106,17 @@ class TMDBExporter:
             cache[key] = fetch_method(key)
         return cache[key]
 
+    def _load_existing_ids(self, output_path: pathlib.Path) -> set[int]:
+        if not output_path.exists():
+            return set()
+        try:
+            with output_path.open("r", encoding="utf-8") as f:
+                reader = csv.DictReader(f)
+                return {int(row["tmdb_id"]) for row in reader if row.get("tmdb_id")}
+        except Exception as e:
+            logger.warning(f"Failed to load IDs from {output_path.name}: {e}")
+            return set()
+
     # ── Cached fetchers ────────────────────────────────────────────────
 
     def get_movie_details(self, movie_id: int) -> dict:
@@ -167,22 +178,8 @@ class TMDBExporter:
             self._next_job_id += 1
         return self._jobs_cache[job_name]
 
-    def _build_cast_jobs(self, cast: list[dict]) -> list[dict]:
-        return [
-            {
-                "id": member["id"],
-                "character_name": member.get("character", ""),
-                "job": self._extract_job_from_character(member.get("character", "")),
-            }
-            for member in cast
-        ]
-
-    def _build_crew_jobs(self, crew: list[dict]) -> list[dict]:
-        return [{"id": member["id"], "job": member.get("job", "")} for member in crew]
-    
     def _filter_new_ids(self, ids: set[int], exported_ids: set[int]) -> set[int]:
-        new_ids  = ids - exported_ids
-        exported_ids.update(new_ids)    
+        new_ids = ids - exported_ids
         return new_ids
 
     def _export_csv(self, data: list[dict], output_path: pathlib.Path) -> None:
