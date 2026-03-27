@@ -74,11 +74,11 @@ class TMDBFetcher:
 
 
 class TMDBExporter:
-    def __init__(self, fetcher: TMDBFetcher,reviews_aggregator: ReviewsAggregator | None = None, output_dir: str = "tmdb_csv_exports"):
+    def __init__(self, fetcher: TMDBFetcher, reviews_aggregator: ReviewsAggregator | None = None, output_dir: str = "tmdb_csv_exports"):
         self.fetcher = fetcher
         self.reviews_aggregator = reviews_aggregator
-        self.output_dir = output_dir
-        pathlib.Path(self.output_dir).mkdir(parents=True, exist_ok=True)
+        self.output_dir = pathlib.Path(output_dir)
+        self.output_dir.mkdir(parents=True, exist_ok=True)
 
         self._movies_cache: dict[int, dict] = {}
         self._movie_keywords_cache: dict[int, dict] = {}
@@ -91,9 +91,13 @@ class TMDBExporter:
         self._keywords_cache: dict[int, dict] = {}
         self._jobs_cache: dict[str, int] = {}
         self._next_job_id: int = 1
+
+        # ── Progress Persistence ───────────────────────────────────────────
+        self._exported_movies = self._load_existing_ids(self.output_dir / "movies.csv")
+        self._exported_people = self._load_existing_ids(self.output_dir / "people.csv")
+        self._exported_companies = self._load_existing_ids(self.output_dir / "companies.csv")
         
-        self._exported_people: set[int] = set()
-        self._exported_companies: set[int] = set()
+        logger.info(f"Initialized. Existing: {len(self._exported_movies)} movies, {len(self._exported_people)} people.")
 
     # ── Cache helpers ──────────────────────────────────────────────────
 
