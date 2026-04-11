@@ -4,7 +4,13 @@ from data_transfer.tmdb_exporter.reviews_aggregator import ReviewsAggregator
 from data_transfer.tmdb_exporter.tmdb_exporter import TMDBExporter, TMDBFetcher
 import json
 import pathlib
+import os
+from dotenv import load_dotenv
 from anthropic import Anthropic
+
+load_dotenv()
+
+# Fixtures for unit tests (Mocks)
 
 @pytest.fixture
 def mock_fetcher():
@@ -39,4 +45,17 @@ def credits_stub():
     path = pathlib.Path(__file__).parent / "fixtures" / "credits_550.json"
     with path.open(encoding="utf-8") as f:
         return json.load(f)
+    
+# Integration tests fixtures (using real API calls)
+
+@pytest.fixture
+def tmdb_fetcher():
+    token = os.getenv("TMDB_BEARER_TOKEN")
+    if not token:
+        pytest.skip("TMDB_BEARER_TOKEN is missing")
+    return TMDBFetcher(bearer_token=os.getenv("TMDB_BEARER_TOKEN"))
+
+@pytest.fixture
+def tmdb_exporter(tmdb_fetcher: TMDBFetcher):
+    return TMDBExporter(fetcher=tmdb_fetcher, output_dir="test_exports")
     
