@@ -4,7 +4,6 @@ import pathlib
 import requests
 import csv
 import logging
-from dotenv import load_dotenv
 from typing import Any, Callable
 from .reviews_aggregator import ReviewsAggregator
 
@@ -29,9 +28,19 @@ class TMDBFetcher:
 
     def fetch(self, endpoint: str, params: dict[str, str] | None = None) -> dict:
         url = f"{self.base_url}/{endpoint}"
-        response = self.session.get(url, params=params, timeout=10)
-        response.raise_for_status()
-        return response.json()
+        try:
+            response = self.session.get(url, params=params, timeout=10)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.HTTPError as e:
+            status_code = e.response.status_code
+                
+            if status_code == 404:
+                raise ValueError(f"Resource not found: {endpoint}. Check if the ID is correct.") from e
+            elif status_code == 401:
+                raise ValueError("Authentication failed: invalid API Key or Bearer Token.") from e
+            else:
+                raise ValueError(f"TMDB API returned an error: {status_code}") from e
 
     def get_movie_details(self, movie_id: int) -> dict:
         return self.fetch(f"movie/{movie_id}")
@@ -102,9 +111,8 @@ class TMDBExporter:
         # ── Progress Persistence ───────────────────────────────────────────
         self._exported_movies = self._load_existing_ids(self.output_dir / "movies.csv")
         self._exported_people = self._load_existing_ids(self.output_dir / "people.csv")
-        self._exported_companies = self._load_existing_ids(
-            self.output_dir / "companies.csv"
-        )
+        self._exported_companies = self._load_existing_ids( self.output_dir / "companies.csv")
+        self._exported_jobs = self._load_existing_ids(self.output_dir / "jobs.csv")
 
         logger.info(
             f"Initialized. Existing: {len(self._exported_movies)} movies, {len(self._exported_people)} people."
@@ -372,12 +380,16 @@ class TMDBExporter:
         self._export_csv(data, self.output_dir / "genres.csv")
 
     def export_jobs(self) -> None:
+        new_jobs = {
+                    job_name: job_id for job_name, 
+                    job_id in self._jobs_cache.items() if job_id not in self._exported_jobs
+                    }
         data = [
-            self.transform_job_data(job_name)
-            for job_name, job_id in self._jobs_cache.items()
-        ]
+            {"id": job_id, 
+             "name": job_name } for job_name, job_id in new_jobs.items()]
         self._export_csv(data, self.output_dir / "jobs.csv")
-
+        self._exported_jobs.update(new_jobs.values())
+        
     def export_batch(self, movie_ids: list[int]) -> None:
         self.export_countries()
 
@@ -386,10 +398,10 @@ class TMDBExporter:
                 self.export_movies(movie_id)
                 self.export_people(movie_id)
                 self.export_companies(movie_id)
+                self.export_jobs()
                 logger.info(f"Successfully exported movie ID {movie_id}")
             except Exception as e:
                 logger.error(f"Error exporting movie ID {movie_id}: {e}")
-            continue
-
+                
         self.export_genres()
-        self.export_jobs()
+        
