@@ -235,7 +235,8 @@ class TMDBExporter:
         if self.reviews_aggregator:
             logger.info(f"  [LLM] Summarizing reviews for: {movie.get('title')}")
             reviews = self.get_movie_reviews(movie_id).get("results", [])[:10]
-            reviews_sum = self.reviews_aggregator.summarize_reviews(reviews)
+            if reviews:
+                reviews_sum = self.reviews_aggregator.summarize_reviews(reviews)
 
         return {
             "tmdb_id": movie.get("id"),
