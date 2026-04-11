@@ -7,11 +7,9 @@ from data_transfer.tmdb_exporter.tmdb_exporter import (
     DEFAULT_CAST_JOB,
     APPROVED_CAST_JOBS,
 )
-from anthropic import Anthropic
 from data_transfer.tmdb_exporter.reviews_aggregator import ReviewsAggregator
 
 # ── _build_image_url ───────────────────────────────────────────────────────
-
 
 class TestBuildImageUrl:
     def test_returns_full_url(self, mock_exporter):
@@ -26,9 +24,7 @@ class TestBuildImageUrl:
     def test_returns_none_for_empty_string(self, mock_exporter):
         assert mock_exporter._build_image_url("") is None
 
-
 # ── _to_json_array ─────────────────────────────────────────────────────────
-
 
 class TestToJsonArray:
     def test_list_of_strings(self, mock_exporter):
@@ -42,9 +38,7 @@ class TestToJsonArray:
         data = [{"id": 1, "job": "Director"}]
         assert json.loads(mock_exporter._to_json_array(data)) == data
 
-
 # ── _extract_job_from_character ────────────────────────────────────────────
-
 
 class TestExtractJobFromCharacter:
     def test_default_for_plain_name(self, mock_exporter):
@@ -74,9 +68,7 @@ class TestExtractJobFromCharacter:
     def test_no_parentheses_returns_default(self, mock_exporter):
         assert mock_exporter._extract_job_from_character("Batman") == DEFAULT_CAST_JOB
 
-
 # ── _get_or_create_job_id ──────────────────────────────────────────────────
-
 
 class TestGetOrCreateJobId:
     def test_first_job_gets_id_1(self, mock_exporter):
@@ -96,9 +88,7 @@ class TestGetOrCreateJobId:
         ids = [mock_exporter._get_or_create_job_id(name) for name in ["A", "B", "C"]]
         assert ids == [1, 2, 3]
 
-
 # ── Caching behavior ──────────────────────────────────────────────────────
-
 
 class TestCaching:
     def test_movie_details_fetched_once(self, mock_exporter, mock_fetcher):
@@ -125,9 +115,7 @@ class TestCaching:
         mock_exporter.get_genres()
         mock_fetcher.get_genres.assert_called_once()
 
-
 # ── transform_movie_data ──────────────────────────────────────────────────
-
 
 class TestTransformMovieData:
     @pytest.fixture(autouse=True)
@@ -252,8 +240,8 @@ class TestTransformMovieData:
         assert json.loads(result["genres"]) == [53]
         assert len(json.loads(result["genres"])) == 1
 
-
 # ── ReviewsAggregator ───────────────────────────────────────────────
+
 class TestReviewsAggregator:
     def test_aggregate_reviews(self, reviews_aggregator):
         reviews = [
@@ -265,8 +253,8 @@ class TestReviewsAggregator:
         assert "CONS:" in summary
         assert "OVERALL:" in summary
 
-
 # ── _export_csv ───────────────────────────────────────────────────────
+
 class TestExportCsv:
     def test_export_csv(self, mock_exporter, tmp_path):
         data = [{"id": 1, "name": "Test"}, {"id": 2, "name": "Another"}]
